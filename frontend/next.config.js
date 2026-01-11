@@ -9,6 +9,10 @@ const nextConfig = {
   output: 'standalone',
   // Ensure trailing slash handling
   trailingSlash: false,
+  webpack: (config) => {
+    config.resolve.alias['@'] = require('path').resolve(__dirname);
+    return config;
+  },
 }
 
 module.exports = nextConfig
