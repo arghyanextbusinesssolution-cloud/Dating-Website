@@ -24,7 +24,7 @@ const httpServer = createServer(app);
 // Initialize Socket.IO
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || 'https://spiritualunitymatch-frontend.onrender.com',
     credentials: true,
     methods: ['GET', 'POST']
   }
@@ -36,7 +36,7 @@ app.set('io', io);
 // Middleware
 // CORS configuration - allow multiple origins for production
 const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:3000',
+  process.env.FRONTEND_URL || 'https://spiritualunitymatch-frontend.onrender.com',
   'https://spiritualunitymatch-frontend.onrender.com',
   'http://localhost:3000'
 ].filter(Boolean); // Remove any undefined values
