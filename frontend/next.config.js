@@ -2,9 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'res.cloudinary.com'],
     unoptimized: false,
   },
+  // Output configuration for standalone build (helps with Render deployment)
+  output: 'standalone',
+  // Ensure trailing slash handling
+  trailingSlash: false,
 }
 
 module.exports = nextConfig

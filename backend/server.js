@@ -34,11 +34,34 @@ const io = new Server(httpServer, {
 app.set('io', io);
 
 // Middleware
+// CORS configuration - allow multiple origins for production
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:3000',
+  'https://spiritualunitymatch-frontend.onrender.com',
+  'http://localhost:3000'
+].filter(Boolean); // Remove any undefined values
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman, or curl)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      // In production, be more strict - allow known origins only
+      // But also allow Render preview URLs
+      if (origin.includes('.onrender.com') || allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Stripe webhook needs raw body for signature verification
@@ -82,6 +105,24 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/spiritual', spiritualRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/soul', soulRoutes);
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({ 
+    success: true,
+    message: 'Spiritual Unity Match API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      profiles: '/api/profiles',
+      matches: '/api/matches',
+      messages: '/api/messages',
+      subscriptions: '/api/subscriptions',
+      soul: '/api/soul'
+    }
+  });
+});
 
 // Health check
 app.get('/api/health', (req, res) => {
