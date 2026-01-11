@@ -11,7 +11,8 @@
   "dependencies": {
     "@stripe/react-stripe-js": "^2.4.0",
     "@stripe/stripe-js": "^2.4.0",
-    "@types/js-cookie": "^3.0.6",
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.46",
     "@types/react-dom": "^18.2.18",
     "autoprefixer": "^10.4.16",
     "axios": "^1.6.2",
@@ -22,14 +23,13 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "socket.io-client": "^4.8.3",
-    "tailwindcss": "^3.4.0"
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
-    "@types/node": "^25.0.6",
-    "@types/react": "^19.2.8",
+    "@types/js-cookie": "^3.0.6",
     "eslint": "^8.56.0",
-    "eslint-config-next": "14.0.4",
-    "typescript": "^5.9.3"
+    "eslint-config-next": "14.0.4"
   },
   "engines": {
     "node": ">=18.0.0",
