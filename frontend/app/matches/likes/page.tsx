@@ -61,10 +61,7 @@ export default function LikesPage() {
       
       // Remove from likes list (now it's a mutual match)
       setLikes(prevLikes => 
-        prevLikes.filter(like => {
-          const likeUserId = typeof like.userId === 'string' ? like.userId : (like.userId?.toString() || String(like.userId));
-          return likeUserId !== data.userId;
-        })
+        prevLikes.filter(like => like.userId !== data.userId)
       );
       
       // Show notification and redirect to messages
@@ -115,20 +112,14 @@ export default function LikesPage() {
         // If mutual match, redirect to messages
         if (response.data.isMutualMatch) {
           // Remove from likes list (now it's a mutual match)
-          setLikes(likes.filter(like => {
-            const likeUserId = typeof like.userId === 'string' ? like.userId : (like.userId?.toString() || String(like.userId));
-            return likeUserId !== userIdString;
-          }));
+          setLikes(likes.filter(like => like.userId !== userIdString));
           
           // Show success and redirect to messages
           alert('🎉 It\'s a match! You can now message each other.');
           router.push(`/messages/${userIdString}`);
         } else {
           // Remove from likes list (just liked back)
-          setLikes(likes.filter(like => {
-            const likeUserId = typeof like.userId === 'string' ? like.userId : (like.userId?.toString() || String(like.userId));
-            return likeUserId !== userIdString;
-          }));
+          setLikes(likes.filter(like => like.userId !== userIdString));
           alert('Like sent! Wait for them to like you back to start messaging.');
         }
       }
