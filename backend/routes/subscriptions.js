@@ -122,7 +122,7 @@ router.post('/create-checkout', protect, async (req, res) => {
         status: subscription.status,
         billingCycle: subscription.billingCycle
       },
-      redirectUrl: `${process.env.FRONTEND_URL || 'https://spiritualunitymatch-frontend.onrender.com'}/subscription/success`
+      redirectUrl: '/subscription/success'
     });
 
     // ============================================
