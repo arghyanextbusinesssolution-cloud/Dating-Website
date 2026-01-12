@@ -73,7 +73,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 flex flex-col max-w-md mx-auto pb-20">
       {/* Top Navigation Bar */}
       <div className="bg-white/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-sm">
-        <h1 className="text-xl font-bold text-gray-800">SoulAlign</h1>
+        <h1 className="text-xl font-bold text-gray-800">spiritualunitymatch</h1>
         <Link href="/profile" className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
           {userProfilePhoto ? (
             <img src={userProfilePhoto} alt="Profile" className="w-full h-full object-cover" />

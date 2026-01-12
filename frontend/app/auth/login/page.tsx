@@ -99,7 +99,7 @@ export default function LoginPage() {
           >
             {/* Logo for mobile */}
             <div className="mb-8 lg:hidden">
-              <h1 className="text-2xl font-bold text-purple-700">SoulAlign</h1>
+              <h1 className="text-2xl font-bold text-purple-700">spiritualunitymatch</h1>
             </div>
 
             <div>

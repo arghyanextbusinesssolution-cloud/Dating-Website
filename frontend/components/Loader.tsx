@@ -1,7 +1,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 
 export function Loader() {
   return (
@@ -12,40 +11,21 @@ export function Loader() {
         transition={{ duration: 0.5 }}
         className="text-center"
       >
-        {/* Spinning Logo */}
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: 'linear'
-          }}
-          className="relative w-20 h-20 mx-auto mb-6"
-        >
-          <Image
-            src="/logo.webp"
-            alt="SoulAlign Logo"
-            width={80}
-            height={80}
-            className="object-contain"
-          />
-        </motion.div>
-
-        {/* Pulsing Circles */}
-        <div className="relative w-32 h-32 mx-auto">
+        {/* Three Dot Loader */}
+        <div className="flex items-center justify-center space-x-2 mb-6">
           {[0, 1, 2].map((index) => (
             <motion.div
               key={index}
-              className="absolute inset-0 border-4 border-spiritual-violet-500 rounded-full"
+              className="w-4 h-4 bg-spiritual-violet-600 rounded-full"
               animate={{
-                scale: [1, 1.5, 1.5],
-                opacity: [1, 0, 0],
+                y: [0, -10, 0],
+                opacity: [0.4, 1, 0.4],
               }}
               transition={{
-                duration: 1.5,
+                duration: 0.8,
                 repeat: Infinity,
-                delay: index * 0.5,
-                ease: 'easeOut'
+                delay: index * 0.2,
+                ease: 'easeInOut',
               }}
             />
           ))}
