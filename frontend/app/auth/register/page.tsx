@@ -55,7 +55,7 @@ export default function RegisterPage() {
               animate={{ opacity: 1, y: 0 }}
               className="absolute top-8 left-8 text-2xl font-bold"
             >
-              SoulAlign
+              spiritualunitymatch
             </motion.div>
 
             {/* Decorative Elements */}

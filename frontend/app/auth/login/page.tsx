@@ -43,7 +43,7 @@ export default function LoginPage() {
               animate={{ opacity: 1, y: 0 }}
               className="absolute top-8 left-8 text-2xl font-bold"
             >
-              SoulAlign
+              
             </motion.div>
 
             {/* Decorative Elements */}
