@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
+import api from '@/lib/api';
 import Link from 'next/link';
 
 interface Plan {
@@ -58,33 +60,59 @@ const plans: Plan[] = [
   },
 ];
 
-const allFeatures = [
-  'Create profile',
-  'View own profile',
-  'Limited profile browsing',
-  'Limited likes',
-  'Restricted messaging',
-  'Limited visibility',
-  'Unlimited profile browsing',
-  'Send & receive messages',
-  'See who liked you',
-  'Basic match suggestions',
-  'Improved profile visibility',
-  'Priority search placement',
-  'Advanced spiritual & compatibility filters',
-  'See profile views',
-  'Unlimited messaging',
-  'Profile boost',
-  'Match insights & reflections',
-];
-
 export default function PlansPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/auth/login');
+    }
+  }, [user, authLoading, router]);
+
+  const handleSelectPlan = async (plan: 'basic' | 'standard' | 'premium') => {
+    if (!user) {
+      router.push('/auth/login');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await api.post('/subscriptions/create-checkout', {
+        plan,
+        billingCycle,
+      });
+
+      if (response.data.success) {
+        // TEST MODE: Direct redirect to success page (no Stripe checkout)
+        if (response.data.redirectUrl) {
+          router.push(response.data.redirectUrl);
+        } else {
+          // Fallback to success page
+          router.push('/subscription/success');
+        }
+      }
+    } catch (error: any) {
+      console.error('Checkout error:', error);
+      alert(error.response?.data?.message || 'Error activating subscription');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getFeatureStatus = (plan: Plan, feature: string) => {
     return plan.features.includes(feature);
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-spiritual-gradient-light flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-spiritual-violet-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-spiritual-gradient-light py-12 px-4">
@@ -127,98 +155,72 @@ export default function PlansPage() {
           </div>
         </motion.div>
 
-        {/* Comparison Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-2xl shadow-xl overflow-hidden"
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              {/* Header */}
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-6 px-6 font-semibold text-gray-900">Features</th>
-                  {plans.map((plan) => (
-                    <th key={plan.plan} className="text-center py-6 px-6 min-w-[200px]">
-                      <div className={`p-4 rounded-lg ${plan.popular ? 'bg-spiritual-gradient text-white' : 'bg-gray-50'}`}>
-                        {plan.popular && (
-                          <div className="text-xs font-semibold mb-2 text-yellow-300">
-                            MOST POPULAR
-                          </div>
-                        )}
-                        <div className={`text-xl font-bold ${plan.popular ? 'text-white' : 'text-spiritual-violet-700'}`}>
-                          {plan.name}
-                        </div>
-                        <div className={`text-3xl font-bold mt-2 ${plan.popular ? 'text-white' : 'text-gray-900'}`}>
-                          ${billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly}
-                          <span className={`text-sm font-normal ${plan.popular ? 'text-white/80' : 'text-gray-600'}`}>
-                            /{billingCycle === 'monthly' ? 'month' : 'year'}
-                          </span>
-                        </div>
-                        <Link
-                          href="/auth/register"
-                          className={`inline-block mt-4 px-6 py-2 rounded-lg font-semibold transition-colors ${
-                            plan.popular
-                              ? 'bg-white text-spiritual-violet-600 hover:bg-gray-100'
-                              : 'bg-spiritual-violet-600 text-white hover:bg-spiritual-violet-700'
-                          }`}
-                        >
-                          Get Started
-                        </Link>
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
+        <div className="grid md:grid-cols-3 gap-8">
+          {plans.map((plan, index) => (
+            <motion.div
+              key={plan.plan}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className={`bg-white rounded-2xl shadow-xl p-8 relative ${
+                plan.popular ? 'ring-2 ring-spiritual-violet-500 scale-105' : ''
+              }`}
+            >
+              {plan.popular && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <span className="bg-spiritual-gradient text-white px-4 py-1 rounded-full text-sm font-semibold">
+                    Most Popular
+                  </span>
+                </div>
+              )}
 
-              {/* Features */}
-              <tbody>
-                {allFeatures.map((feature, index) => (
-                  <tr key={feature} className={`border-b border-gray-100 ${index % 2 === 0 ? 'bg-gray-50/50' : 'bg-white'}`}>
-                    <td className="py-4 px-6 font-medium text-gray-900">
-                      {feature}
-                    </td>
-                    {plans.map((plan) => (
-                      <td key={plan.plan} className="text-center py-4 px-6">
-                        {getFeatureStatus(plan, feature) ? (
-                          <svg
-                            className="w-6 h-6 text-green-500 mx-auto"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-6 h-6 text-gray-300 mx-auto"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        )}
-                      </td>
-                    ))}
-                  </tr>
+              <h2 className="text-2xl font-bold text-spiritual-violet-700 mb-2">
+                {plan.name}
+              </h2>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-gray-900">
+                  ${billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly}
+                </span>
+                <span className="text-gray-600">
+                  /{billingCycle === 'monthly' ? 'month' : 'year'}
+                </span>
+              </div>
+
+              <ul className="space-y-3 mb-8">
+                {plan.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-start">
+                    <svg
+                      className="w-5 h-5 text-spiritual-violet-500 mr-2 mt-0.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span className="text-gray-700">{feature}</span>
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
+              </ul>
+
+              <button
+                onClick={() => handleSelectPlan(plan.plan)}
+                disabled={loading}
+                className={`w-full py-3 rounded-lg font-semibold transition-opacity ${
+                  plan.popular
+                    ? 'bg-spiritual-gradient text-white'
+                    : 'bg-spiritual-violet-100 text-spiritual-violet-700 hover:bg-spiritual-violet-200'
+                } disabled:opacity-50`}
+              >
+                {loading ? 'Processing...' : 'Select Plan'}
+              </button>
+            </motion.div>
+          ))}
+        </div>
 
         {/* Call to Action */}
         <motion.div
