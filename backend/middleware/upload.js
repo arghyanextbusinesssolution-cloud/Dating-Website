@@ -22,11 +22,18 @@ const upload = multer({
 });
 
 // Helper function to upload file to Cloudinary
-export const uploadToCloudinary = (file) => {
+export const uploadToCloudinary = (file, folder = 'spiritualunitymatch-profiles') => {
   return new Promise((resolve, reject) => {
     if (!file || !file.buffer) {
       return reject(new Error('No file provided'));
     }
+
+    console.log('📤 [Cloudinary] Uploading file:', {
+      fileName: file.originalname,
+      mimeType: file.mimetype,
+      fileSize: file.buffer.length,
+      folder: folder
+    });
 
     // Convert buffer to base64 data URI
     const base64Data = file.buffer.toString('base64');
@@ -35,7 +42,7 @@ export const uploadToCloudinary = (file) => {
     cloudinary.uploader.upload(
       dataUri,
       {
-        folder: 'spiritualunitymatch-profiles',
+        folder: folder,
         transformation: [
           { width: 800, height: 800, crop: 'limit' },
           { quality: 'auto' }
@@ -43,8 +50,10 @@ export const uploadToCloudinary = (file) => {
       },
       (error, result) => {
         if (error) {
+          console.error('❌ [Cloudinary] Upload error:', error);
           return reject(error);
         }
+        console.log('✅ [Cloudinary] Upload successful:', result.secure_url);
         resolve(result);
       }
     );

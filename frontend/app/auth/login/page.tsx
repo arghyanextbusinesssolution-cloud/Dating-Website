@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import ComingSoonModal from '@/components/ComingSoonModal';
 
 export default function LoginPage() {
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [comingSoonModal, setComingSoonModal] = useState<{ open: boolean; provider: string }>({ open: false, provider: '' });
@@ -99,11 +101,18 @@ export default function LoginPage() {
           >
             {/* Logo for mobile */}
             <div className="mb-8 lg:hidden">
+                <Image
+              src="/logo.webp"
+              alt="Spiritual Unity Match Logo"
+              width={200}
+              height={200}
+              className="w-40 h-40 sm:w-48 sm:h-48 lg:w-56 lg:h-56 object-contain"
+            />
               <h1 className="text-2xl font-bold text-purple-700">spiritualunitymatch</h1>
             </div>
 
             <div>
-              <h2 className="text-4xl font-bold text-purple-700 mb-2">Welcome</h2>
+              <h2 className="text-4xl font-bold text-purple-700 mb-2">Welcome Back..</h2>
               <p className="text-purple-500 mb-8">Please enter your login details below</p>
 
               {error && (
@@ -145,13 +154,28 @@ export default function LoginPage() {
                       </svg>
                     </div>
                     <input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                      className="w-full pl-12 pr-12 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                       placeholder="••••••••"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPassword ? (
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.63-2.92 3.12-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46A11.804 11.804 0 001 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm5.31-7.78l3.15 3.15.02-.02c.52-.04 1.06-.07 1.59-.07 5 0 9.27 3.11 11 7.5-.63 1.91-1.77 3.63-3.25 5.05l.01.01l2.94 2.94 1.27-1.27L4.27 3 3 4.27l9.84 9.84z"/>
+                        </svg>
+                      )}
+                    </button>
                   </div>
                   <div className="text-right mt-2">
                     <Link href="#" className="text-sm text-purple-500 hover:text-purple-700 hover:underline">

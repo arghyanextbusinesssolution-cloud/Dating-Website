@@ -95,6 +95,7 @@ import adminRoutes from './routes/admin.js';
 import spiritualRoutes from './routes/spiritual.js';
 import communityRoutes from './routes/community.js';
 import soulRoutes from './routes/soul.js';
+import eventsRoutes from './routes/events.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/profiles', profileRoutes);
@@ -105,6 +106,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/spiritual', spiritualRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/soul', soulRoutes);
+app.use('/api/events', eventsRoutes);
 
 // Root route
 app.get('/', (req, res) => {

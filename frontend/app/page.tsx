@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MaskContainer } from '@/components/ui/svg-mask-effect';
 import { AnimatedTestimonials } from '@/components/ui/animated-testimonials';
+import NavbarWrapper from '@/components/NavbarWrapper';
 
 // Back to Top Button Component
 const BackToTopButton = () => {
@@ -484,6 +485,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
+      <NavbarWrapper />
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-24">

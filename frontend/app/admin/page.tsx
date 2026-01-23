@@ -1,7 +1,8 @@
-'use client';
+ 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import api from '@/lib/api';
@@ -129,6 +130,23 @@ export default function AdminPage() {
             </motion.div>
           </div>
         )}
+
+        {/* Admin tools */}
+        <div className="mt-6 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl shadow-xl p-6 flex items-center justify-between"
+          >
+            <div>
+              <h3 className="text-lg font-semibold">Events</h3>
+              <p className="text-sm text-gray-500">Create and manage site events (admin only)</p>
+            </div>
+            <div>
+              <Link href="/admin/events" className="px-4 py-2 bg-purple-600 text-white rounded-md">Manage Events</Link>
+            </div>
+          </motion.div>
+        </div>
 
         {/* Users Table */}
         <div className="bg-white rounded-2xl shadow-xl p-6">

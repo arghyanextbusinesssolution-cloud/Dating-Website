@@ -45,10 +45,13 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Initialize socket connection
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    const socketUrl = API_URL.replace('/api', ''); // Remove /api if present
+    // Use Render backend URL in production, localhost in development
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spiritualunitymatch-backend.onrender.com';
+    const socketUrl = API_URL.replace('/api', '').replace('/api/', ''); // Remove /api if present
 
-    console.log('🔌 [Socket] Connecting to:', socketUrl);
+    console.log('🔌 [Socket] Environment API URL:', process.env.NEXT_PUBLIC_API_URL);
+    console.log('🔌 [Socket] Connecting to Socket.IO at:', socketUrl);
+    console.log('🔌 [Socket] Node Env:', process.env.NODE_ENV);
 
     const newSocket = io(socketUrl, {
       auth: {

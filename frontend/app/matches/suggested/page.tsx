@@ -31,6 +31,7 @@ export default function SuggestedMatchesPage() {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'for-you' | 'nearby'>('for-you');
+  const [isLiking, setIsLiking] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -72,6 +73,7 @@ export default function SuggestedMatchesPage() {
 
   const handleLike = async (userId: string) => {
     try {
+      setIsLiking(true);
       const response = await api.post(`/matches/like/${userId}`);
       if (response.data.success) {
         if (response.data.isMutualMatch) {
@@ -90,6 +92,8 @@ export default function SuggestedMatchesPage() {
       }
     } catch (error: any) {
       alert(error.response?.data?.message || 'Error liking user');
+    } finally {
+      setIsLiking(false);
     }
   };
 
@@ -240,6 +244,21 @@ export default function SuggestedMatchesPage() {
             exit={{ opacity: 0, scale: 0.95 }}
             className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden"
           >
+            {/* Liking Loader */}
+            {isLiking && (
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center rounded-3xl">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center gap-4"
+                >
+                  <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-white border-r-white animate-spin"></div>
+                  </div>
+                  <p className="text-white font-semibold text-lg">liking him ok</p>
+                </motion.div>
+              </div>
+            )}
             {/* Profile Photo */}
             <div className="relative h-[600px] bg-gradient-to-br from-gray-100 to-gray-200">
               {currentMatch.profile?.photos && currentMatch.profile.photos.length > 0 ? (

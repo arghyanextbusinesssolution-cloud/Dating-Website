@@ -85,18 +85,18 @@ export const protect = async (req, res, next) => {
 // Like a VIP pass - only admins get through
 export const adminOnly = async (req, res, next) => {
   try {
-    // First check if user is authenticated
-    await protect(req, res, () => {});
+    // First check if user is authenticated using protect middleware
+    return protect(req, res, () => {
+      // Then check if they're an admin
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Admin access required'
+        });
+      }
 
-    // Then check if they're an admin
-    if (!req.user || req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Admin access required'
-      });
-    }
-
-    next();
+      next();
+    });
   } catch (error) {
     res.status(403).json({
       success: false,
