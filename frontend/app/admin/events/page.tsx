@@ -88,17 +88,44 @@ export default function AdminEventsPage() {
 
   const handleCreate = async (e: any) => {
     e.preventDefault();
-    console.log('📝 [Events] Starting event creation...');
+    console.log('📝 [ADMIN EVENT CREATION] Starting event creation...');
     
     try {
       setSaving(true);
       let imageUrl = form.image || '';
       
-      console.log('📋 [Events] Form data:', {
+      const startDateObj = new Date(form.startDate);
+      const endDateObj = form.endDate ? new Date(form.endDate) : null;
+      
+      console.log('📅 [ADMIN EVENT CREATION] Event date/time details:', {
         title: form.title,
         hasImage: !!imageFile,
-        startDate: form.startDate,
-        location: form.location
+        rawStartDate: form.startDate,
+        startDateFormatted: startDateObj.toLocaleString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          timeZone: 'UTC'
+        }),
+        rawEndDate: form.endDate,
+        endDateFormatted: endDateObj ? endDateObj.toLocaleString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          timeZone: 'UTC'
+        }) : 'Not specified',
+        location: form.location,
+        capacity: form.capacity,
+        visibleToPlans: form.visibleToPlans,
+        submittedAt: new Date().toISOString()
       });
       
       if (imageFile) {

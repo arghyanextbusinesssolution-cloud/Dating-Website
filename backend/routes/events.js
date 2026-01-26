@@ -53,6 +53,40 @@ router.post('/upload-image', protect, upload.single('image'), async (req, res) =
 router.post('/', adminOnly, async (req, res) => {
   try {
     const { title, description, image, startDate, endDate, location, capacity, visibleToPlans } = req.body;
+    
+    // Log event creation details with date/time
+    console.log('📅 [EVENT CREATION] Admin creating new event:', {
+      adminEmail: req.user.email,
+      adminId: req.user._id,
+      eventTitle: title,
+      eventStartDate: startDate,
+      eventStartDateFormatted: new Date(startDate).toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'UTC'
+      }),
+      eventEndDate: endDate,
+      eventEndDateFormatted: endDate ? new Date(endDate).toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'UTC'
+      }) : 'Not specified',
+      location: location,
+      capacity: capacity,
+      visibleToPlans: visibleToPlans,
+      createdAt: new Date().toISOString()
+    });
+    
     const event = await Event.create({
       title,
       description,
@@ -64,9 +98,19 @@ router.post('/', adminOnly, async (req, res) => {
       visibleToPlans: Array.isArray(visibleToPlans) ? visibleToPlans : [],
       createdBy: req.user._id
     });
+    
+    console.log('✅ [EVENT CREATION] Event saved to database:', {
+      eventId: event._id,
+      eventTitle: event.title,
+      mongoStartDate: event.startDate,
+      mongoEndDate: event.endDate,
+      createdAt: event.createdAt,
+      updatedAt: event.updatedAt
+    });
+    
     res.json({ success: true, event });
   } catch (error) {
-    console.error('Create event error:', error);
+    console.error('❌ [EVENT CREATION] Create event error:', error);
     res.status(500).json({ success: false, message: 'Error creating event' });
   }
 });

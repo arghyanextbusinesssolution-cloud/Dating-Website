@@ -21,14 +21,51 @@ export default function EventsPage() {
       const res = await api.get('/events');
       if (res.data.success) {
         setEvents(res.data.events || []);
+        
+        // Log all events with their dates
+        console.log('📅 [FRONTEND - EVENTS] Events fetched successfully:', {
+          totalEvents: res.data.events?.length || 0,
+          fetchedAt: new Date().toISOString(),
+          events: res.data.events?.map((evt: any) => ({
+            eventId: evt._id,
+            title: evt.title,
+            location: evt.location,
+            startDate: evt.startDate,
+            startDateFormatted: new Date(evt.startDate).toLocaleString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              timeZone: 'UTC'
+            }),
+            endDate: evt.endDate,
+            endDateFormatted: evt.endDate ? new Date(evt.endDate).toLocaleString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              timeZone: 'UTC'
+            }) : 'N/A',
+            capacity: evt.capacity
+          })) || []
+        });
+        
         // Store which events user is registered for
         if (res.data.registrations) {
           const registeredIds = new Set(res.data.registrations.map((r: any) => r.event));
           setRegistrations(registeredIds);
+          console.log('✅ [FRONTEND - EVENTS] User registrations loaded:', {
+            registeredCount: registeredIds.size,
+            registeredEventIds: Array.from(registeredIds)
+          });
         }
       }
     } catch (err) {
-      console.error('Fetch events error', err);
+      console.error('❌ [FRONTEND - EVENTS] Fetch events error', err);
     } finally {
       setLoading(false);
     }
