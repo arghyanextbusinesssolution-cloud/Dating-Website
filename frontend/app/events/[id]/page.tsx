@@ -30,7 +30,7 @@ export default function EventDetailPage() {
         setRegistrations(res.data.registrations || []);
         // Check if user is registered
         if (user && res.data.registrations) {
-          const userRegistered = res.data.registrations.some((r: any) => r.user._id === user._id);
+          const userRegistered = res.data.registrations.some((r: any) => r.user._id === user.id);
           setIsUserRegistered(userRegistered);
         }
       }

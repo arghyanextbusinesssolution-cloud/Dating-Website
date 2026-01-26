@@ -56,7 +56,7 @@ export default function EventsPage() {
         
         // Store which events user is registered for
         if (res.data.registrations) {
-          const registeredIds = new Set(res.data.registrations.map((r: any) => r.event));
+          const registeredIds: Set<string> = new Set(res.data.registrations.map((r: any) => r.event));
           setRegistrations(registeredIds);
           console.log('✅ [FRONTEND - EVENTS] User registrations loaded:', {
             registeredCount: registeredIds.size,
