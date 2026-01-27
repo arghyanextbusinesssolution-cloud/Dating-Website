@@ -148,7 +148,20 @@ export default function UserProfilePage() {
 
           {/* Profile Info */}
           <div className="p-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-1">{profile.name}</h1>
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-3xl font-bold text-gray-800">{profile.name}</h1>
+              {profile.isApproved && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  whileHover={{ scale: 1.1 }}
+                  className="text-2xl"
+                  title="Verified Profile"
+                >
+                  ✅
+                </motion.div>
+              )}
+            </div>
             {profile.user?.email && (
               <p className="text-sm text-gray-600 mb-1">
                 <a href={`mailto:${profile.user.email}`} className="text-gray-700 underline">

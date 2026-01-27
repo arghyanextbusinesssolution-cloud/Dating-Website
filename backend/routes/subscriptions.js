@@ -477,5 +477,97 @@ router.post('/cancel', protect, async (req, res) => {
   }
 });
 
+// @route   GET /api/subscriptions/details
+// @desc    Get detailed subscription info with features and benefits
+// @access  Private
+router.get('/details', protect, async (req, res) => {
+  try {
+    const subscription = await Subscription.findOne({ user: req.user._id });
+
+    const planDetails = {
+      basic: {
+        name: 'Starter Spirit',
+        description: 'Begin your spiritual journey',
+        features: [
+          'Basic browsing (10 profiles/day)',
+          'Create profile',
+          'View matches',
+          'Community access'
+        ],
+        monthlyPrice: 4.99,
+        yearlyPrice: 49.99
+      },
+      standard: {
+        name: 'Spiritual Seeker',
+        description: 'Deepen your connections',
+        features: [
+          'Unlimited browsing',
+          'Full messaging',
+          'See who likes you',
+          'Basic filters',
+          'Community events',
+          'Soul check-ins'
+        ],
+        monthlyPrice: 9.99,
+        yearlyPrice: 99.99
+      },
+      premium: {
+        name: 'Divine Connection',
+        description: 'Ultimate spiritual experience',
+        features: [
+          'Everything in Standard',
+          'Advanced filters',
+          'Profile boost',
+          'Priority placement',
+          'See profile views',
+          'Match insights',
+          'VIP support',
+          'Spiritual coaching'
+        ],
+        monthlyPrice: 19.99,
+        yearlyPrice: 199.99
+      }
+    };
+
+    if (!subscription) {
+      return res.json({
+        success: true,
+        subscription: null,
+        availablePlans: planDetails
+      });
+    }
+
+    const currentPlan = subscription.plan;
+    const daysRemaining = subscription.endDate
+      ? Math.ceil((new Date(subscription.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      : 0;
+
+    res.json({
+      success: true,
+      subscription: {
+        plan: subscription.plan,
+        planDetails: planDetails[currentPlan],
+        status: subscription.status,
+        billingCycle: subscription.billingCycle,
+        startDate: subscription.startDate,
+        endDate: subscription.endDate,
+        daysRemaining: daysRemaining > 0 ? daysRemaining : 0,
+        features: subscription.features,
+        isActive: subscription.isActive(),
+        canceledAt: subscription.canceledAt,
+        cancelAtPeriodEnd: subscription.cancelAtPeriodEnd
+      },
+      availablePlans: planDetails,
+      upgradeSuggestion: currentPlan === 'basic' ? 'standard' : currentPlan === 'standard' ? 'premium' : null
+    });
+  } catch (error) {
+    console.error('Get subscription details error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching subscription details'
+    });
+  }
+});
+
 export default router;
 

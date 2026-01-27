@@ -12,6 +12,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const { user, loading: authLoading, logout } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [stats, setStats] = useState({ activities: 0, likes: 0, moments: 0 });
@@ -29,6 +30,7 @@ export default function ProfilePage() {
       fetchUserProfile();
       fetchStats();
       fetchUserEvents();
+      fetchSubscription();
     }
   }, [user, authLoading, router]);
 
@@ -84,6 +86,17 @@ export default function ProfilePage() {
       console.log('Stats endpoint not available, using defaults');
     }
   };
+
+  const fetchSubscription = async () => {
+    try {
+      const response = await api.get('/subscriptions/my-subscription');
+      if (response.data.success) {
+        setSubscription(response.data.subscription);
+      }
+    } catch (error) {
+      console.error('Fetch subscription error:', error);
+    }
+  };;
 
   if (authLoading || loading) {
     return (
@@ -175,7 +188,20 @@ export default function ProfilePage() {
           </div>
 
           {/* Name and Title */}
-          <h1 className="text-3xl font-bold text-gray-800 mb-1">{profile.name}</h1>
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <h1 className="text-3xl font-bold text-gray-800">{profile.name}</h1>
+            {profile.isApproved && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                whileHover={{ scale: 1.1 }}
+                className="text-xl"
+                title="Verified Profile"
+              >
+                ✅
+              </motion.div>
+            )}
+          </div>
           {profile.user?.email && (
             <p className="text-sm text-gray-600 mb-1">
               <a href={`mailto:${profile.user.email}`} className="text-gray-700 underline">
@@ -201,6 +227,44 @@ export default function ProfilePage() {
             </div>
           </div>
         </motion.div>
+
+        {/* Subscription Card */}
+        {subscription && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-2xl p-4 shadow-lg border border-purple-300"
+          >
+            <Link
+              href="/subscription"
+              className="block group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-white">
+                  <p className="text-xs uppercase tracking-wider font-semibold opacity-90">Current Plan</p>
+                  <h3 className="text-lg font-bold capitalize flex items-center gap-2 mt-1">
+                    {subscription.plan === 'basic' && '🌙 Starter'}
+                    {subscription.plan === 'standard' && '⭐ Seeker'}
+                    {subscription.plan === 'premium' && '👑 Premium'}
+                  </h3>
+                  <p className="text-sm opacity-90 mt-1">
+                    {subscription.billingCycle === 'monthly' ? '📅 Monthly' : '📆 Yearly'}
+                  </p>
+                </div>
+                <motion.div
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-white text-3xl"
+                >
+                  ✨
+                </motion.div>
+              </div>
+              <div className="mt-3 bg-white/20 rounded-lg px-3 py-2 group-hover:bg-white/30 transition-colors">
+                <p className="text-white text-sm font-semibold text-center">Tap to manage →</p>
+              </div>
+            </Link>
+          </motion.div>
+        )}
 
         {/* Menu Items */}
         <div className="space-y-3">
