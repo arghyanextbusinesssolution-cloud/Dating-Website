@@ -16,6 +16,7 @@ export default function ProfilePage() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [stats, setStats] = useState({ activities: 0, likes: 0, moments: 0 });
   const [events, setEvents] = useState<any[]>([]);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -141,7 +142,7 @@ export default function ProfilePage() {
         <h1 className="text-xl font-bold text-gray-800">Profile</h1>
         
         <Link
-          href="/profile/setup"
+          href="/profile/edit"
           className="w-10 h-10 rounded-full bg-white/70 backdrop-blur-md flex items-center justify-center hover:bg-white transition-colors border border-purple-200 shadow-sm"
         >
           <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,6 +176,13 @@ export default function ProfilePage() {
 
           {/* Name and Title */}
           <h1 className="text-3xl font-bold text-gray-800 mb-1">{profile.name}</h1>
+          {profile.user?.email && (
+            <p className="text-sm text-gray-600 mb-1">
+              <a href={`mailto:${profile.user.email}`} className="text-gray-700 underline">
+                {profile.user.email}
+              </a>
+            </p>
+          )}
           <p className="text-purple-600 text-lg font-medium mb-6">{profile.nickname || 'Spiritual Seeker'}</p>
 
           {/* Stats Section */}
@@ -242,19 +250,31 @@ export default function ProfilePage() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            onClick={() => {
-              logout();
-              router.push('/auth/login');
+            onClick={async () => {
+              setLoggingOut(true);
+              await logout();
             }}
-            className="w-full bg-red-100/60 backdrop-blur-md hover:bg-red-100 transition-colors border border-red-300 rounded-2xl p-4 flex items-center justify-between group shadow-sm"
+            disabled={loggingOut}
+            className="w-full bg-red-100/60 backdrop-blur-md hover:bg-red-100 transition-colors border border-red-300 rounded-2xl p-4 flex items-center justify-between group shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <span className="flex items-center gap-3">
-              <span className="text-xl">🚪</span>
-              <span className="text-red-700 font-medium">Logout</span>
+              {loggingOut ? (
+                <>
+                  <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600"></span>
+                  <span className="text-red-700 font-medium">Logging out...</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xl">🚪</span>
+                  <span className="text-red-700 font-medium">Logout</span>
+                </>
+              )}
             </span>
-            <svg className="w-5 h-5 text-red-600 group-hover:text-red-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            {!loggingOut && (
+              <svg className="w-5 h-5 text-red-600 group-hover:text-red-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            )}
           </motion.button>
         </div>
 

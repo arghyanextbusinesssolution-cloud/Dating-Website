@@ -2,6 +2,7 @@ import express from 'express';
 import { protect } from '../middleware/auth.js';
 import { requireSubscription, requirePlan } from '../middleware/subscription.js';
 import Profile from '../models/Profile.js';
+import User from '../models/User.js';
 import Subscription from '../models/Subscription.js';
 import Engagement from '../models/Engagement.js';
 import { uploadPhotos, uploadToCloudinary } from '../middleware/upload.js';
@@ -298,6 +299,90 @@ router.get('/browse', protect, requireSubscription, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error browsing profiles'
+    });
+  }
+});
+
+// @route   PATCH /api/profiles/edit-basic-info
+// @desc    Edit basic profile info (name, email, spiritual beliefs & practices only)
+// @access  Private
+router.patch('/edit-basic-info', protect, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { name, email, spiritualBeliefs, spiritualPractices } = req.body;
+    const errors = {};
+
+    // Validate required fields
+    if (!name || !name.trim()) {
+      errors.name = 'Name is required';
+    }
+    if (!email || !email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+      errors.email = 'Email format is invalid';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors
+      });
+    }
+
+    // Update user email in User model
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Check if email is already taken (if changed)
+    if (email !== user.email) {
+      const existingUser = await User.findOne({ email: email.toLowerCase() });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is already in use',
+          errors: { email: 'This email is already taken' }
+        });
+      }
+      user.email = email.toLowerCase();
+      await user.save();
+    }
+
+    // Update profile
+    const profile = await Profile.findOne({ user: userId });
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+    // Only allow updating these 4 fields
+    profile.name = name.trim();
+    if (spiritualBeliefs && Array.isArray(spiritualBeliefs)) {
+      profile.spiritualBeliefs = spiritualBeliefs;
+    }
+    if (spiritualPractices && Array.isArray(spiritualPractices)) {
+      profile.spiritualPractices = spiritualPractices;
+    }
+
+    await profile.save();
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      profile
+    });
+  } catch (error) {
+    console.error('Edit profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error updating profile'
     });
   }
 });

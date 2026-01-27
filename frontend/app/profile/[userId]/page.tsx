@@ -149,8 +149,14 @@ export default function UserProfilePage() {
           {/* Profile Info */}
           <div className="p-6">
             <h1 className="text-3xl font-bold text-gray-800 mb-1">{profile.name}</h1>
+            {profile.user?.email && (
+              <p className="text-sm text-gray-600 mb-1">
+                <a href={`mailto:${profile.user.email}`} className="text-gray-700 underline">
+                  {profile.user.email}
+                </a>
+              </p>
+            )}
             {profile.nickname && <p className="text-gray-600 mb-4">@{profile.nickname}</p>}
-            
             {profile.age && (
               <p className="text-gray-600 mb-4">{profile.age} years old</p>
             )}
