@@ -32,11 +32,13 @@ export default function SuggestedMatchesPage() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'for-you' | 'nearby'>('for-you');
   const [isLiking, setIsLiking] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/auth/login');
       return;
+      
     }
 
     if (user) {
@@ -110,6 +112,7 @@ export default function SuggestedMatchesPage() {
 
   const handleReject = async (userId: string) => {
     try {
+      setIsRejecting(true);
       const response = await api.post(`/matches/reject/${userId}`);
       if (response.data.success) {
         // Remove from current matches and move to next
@@ -121,6 +124,8 @@ export default function SuggestedMatchesPage() {
     } catch (error: any) {
       console.error('Reject error:', error);
       alert(error.response?.data?.message || 'Error rejecting user');
+    } finally {
+      setIsRejecting(false);
     }
   };
 
@@ -253,9 +258,29 @@ export default function SuggestedMatchesPage() {
                   className="flex flex-col items-center gap-4"
                 >
                   <div className="relative w-16 h-16">
-                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-white border-r-white animate-spin"></div>
+                    <svg className="w-16 h-16 text-red-500 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                    </svg>
                   </div>
-                  <p className="text-white font-semibold text-lg">liking him ok</p>
+                  <p className="text-white font-semibold text-lg">Liking...</p>
+                </motion.div>
+              </div>
+            )}
+
+            {/* Disliking Loader */}
+            {isRejecting && (
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center rounded-3xl">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center gap-4"
+                >
+                  <div className="relative w-16 h-16">
+                    <svg className="w-16 h-16 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                  <p className="text-white font-semibold text-lg">Disliking...</p>
                 </motion.div>
               </div>
             )}

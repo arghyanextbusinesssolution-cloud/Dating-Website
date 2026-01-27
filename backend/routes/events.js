@@ -148,6 +148,21 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+// Get user's registered events (MUST be before /:id route)
+router.get('/user/registered', protect, async (req, res) => {
+  try {
+    const registrations = await EventRegistration.find({ user: req.user._id })
+      .populate('event')
+      .sort({ createdAt: -1 });
+    
+    const events = registrations.map(r => r.event);
+    res.json({ success: true, events });
+  } catch (error) {
+    console.error('Get user events error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching user events' });
+  }
+});
+
 // Get event details
 router.get('/:id', protect, async (req, res) => {
   try {

@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/api';
 
 const TOTAL_STEPS = 6;
+const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5MB as per backend
+const ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
 
 export default function ProfileSetupPage() {
   const router = useRouter();
@@ -15,6 +17,7 @@ export default function ProfileSetupPage() {
   const [loading, setLoading] = useState(false);
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [formData, setFormData] = useState({
     name: '',
     nickname: '',
@@ -26,7 +29,6 @@ export default function ProfileSetupPage() {
     bio: '',
     spiritualBeliefs: [] as string[],
     spiritualPractices: [] as string[],
-    lifestyleChoices: [] as string[],
     activityLevel: 'moderate',
     intentBadges: [] as string[],
   });
@@ -38,12 +40,23 @@ export default function ProfileSetupPage() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const validFiles: File[] = [];
+    const errorMessages: string[] = [];
 
     // Filter valid image files (JPG, PNG only)
     files.forEach((file) => {
-      if (file.type === 'image/jpeg' || file.type === 'image/jpg' || file.type === 'image/png') {
-        validFiles.push(file);
+      // Check file type
+      if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+        errorMessages.push(`${file.name} is not a valid format. Only JPG and PNG are allowed.`);
+        return;
       }
+
+      // Check file size (5MB max)
+      if (file.size > MAX_PHOTO_SIZE) {
+        errorMessages.push(`${file.name} is too large. Maximum file size is 5MB.`);
+        return;
+      }
+
+      validFiles.push(file);
     });
 
     // Limit to 5 photos total
@@ -52,7 +65,7 @@ export default function ProfileSetupPage() {
     if (totalPhotos > 5) {
       const remaining = 5 - photos.length;
       filesToAdd = validFiles.slice(0, remaining);
-      alert(`You can upload up to 5 photos. Only ${remaining} photo(s) were added.`);
+      errorMessages.push(`You can upload up to 5 photos. Only ${remaining} photo(s) were added.`);
     }
 
     // Create previews for new files using URL.createObjectURL (synchronous)
@@ -60,7 +73,12 @@ export default function ProfileSetupPage() {
     
     setPhotos(prev => [...prev, ...filesToAdd]);
     setPhotoPreviews(prev => [...prev, ...newPreviews]);
-    
+
+    // Show validation errors if any
+    if (errorMessages.length > 0) {
+      alert(errorMessages.join('\n'));
+    }
+
     // Reset input
     e.target.value = '';
   };
@@ -73,18 +91,130 @@ export default function ProfileSetupPage() {
   };
 
   const nextStep = () => {
+    // Validate current step before proceeding
+    const stepValidations: { [key: number]: () => boolean } = {
+      1: () => {
+        const stepErrors: { [key: string]: string } = {};
+        if (!formData.name.trim()) stepErrors.name = 'Name is required';
+        if (!formData.gender) stepErrors.gender = 'Gender is required';
+        if (!formData.age) stepErrors.age = 'Age is required';
+        else if (parseInt(formData.age) < 18) stepErrors.age = 'Must be 18+';
+        if (formData.genderPreference.length === 0) stepErrors.genderPreference = 'Select at least one';
+        
+        setErrors(stepErrors);
+        return Object.keys(stepErrors).length === 0;
+      },
+      2: () => {
+        const stepErrors: { [key: string]: string } = {};
+        if (photos.length === 0) stepErrors.photos = 'Upload at least one photo';
+        
+        setErrors(stepErrors);
+        return Object.keys(stepErrors).length === 0;
+      },
+      3: () => {
+        const stepErrors: { [key: string]: string } = {};
+        if (!formData.relationshipIntention) stepErrors.relationshipIntention = 'Select an intention';
+        
+        setErrors(stepErrors);
+        return Object.keys(stepErrors).length === 0;
+      },
+      4: () => {
+        const stepErrors: { [key: string]: string } = {};
+        if (formData.spiritualBeliefs.length === 0) stepErrors.spiritualBeliefs = 'Select at least one';
+        
+        setErrors(stepErrors);
+        return Object.keys(stepErrors).length === 0;
+      },
+      5: () => {
+        const stepErrors: { [key: string]: string } = {};
+        if (formData.spiritualPractices.length === 0) stepErrors.spiritualPractices = 'Select at least one';
+        
+        setErrors(stepErrors);
+        return Object.keys(stepErrors).length === 0;
+      },
+      6: () => {
+        const stepErrors: { [key: string]: string } = {};
+        // Final step - bio is optional, no validation needed
+        setErrors(stepErrors);
+        return true;
+      }
+    };
+
+    if (stepValidations[currentStep] && !stepValidations[currentStep]()) {
+      console.warn(`⚠️ Step ${currentStep} validation failed:`, errors);
+      return;
+    }
+
     if (currentStep < TOTAL_STEPS) {
+      console.log(`✅ Step ${currentStep} passed, moving to step ${currentStep + 1}`);
       setCurrentStep(currentStep + 1);
+      setErrors({});
     }
   };
 
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+      setErrors({}); // Clear errors when navigating
     }
   };
 
+  const validateForm = (): boolean => {
+    const newErrors: { [key: string]: string } = {};
+
+    // Basic validation
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    if (!formData.gender) {
+      newErrors.gender = 'Gender is required';
+    }
+    if (!formData.age) {
+      newErrors.age = 'Age is required';
+    } else if (parseInt(formData.age) < 18) {
+      newErrors.age = 'You must be at least 18 years old';
+    }
+    if (!formData.relationshipIntention) {
+      newErrors.relationshipIntention = 'Relationship intention is required';
+    }
+    if (formData.genderPreference.length === 0) {
+      newErrors.genderPreference = 'Please select at least one gender preference';
+    }
+    if (formData.spiritualBeliefs.length === 0) {
+      newErrors.spiritualBeliefs = 'Please select at least one spiritual belief';
+    }
+    if (formData.spiritualPractices.length === 0) {
+      newErrors.spiritualPractices = 'Please select at least one spiritual practice';
+    }
+    if (photos.length === 0) {
+      newErrors.photos = 'Please upload at least one photo (max 5 photos, 5MB each)';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async () => {
+    // Validate form before submission
+    if (!validateForm()) {
+      console.error('❌ Profile validation failed:', errors);
+      alert('Please fill in all required fields with valid data');
+      return;
+    }
+
+    console.log('✅ Profile validation passed, submitting...');
+    console.log('📝 Profile form data:', {
+      name: formData.name,
+      age: formData.age,
+      gender: formData.gender,
+      genderPreference: formData.genderPreference,
+      relationshipIntention: formData.relationshipIntention,
+      spiritualBeliefs: formData.spiritualBeliefs,
+      spiritualPractices: formData.spiritualPractices,
+      photosCount: photos.length,
+      photoSizes: photos.map(p => ({ name: p.name, size: `${(p.size / 1024).toFixed(2)}KB`, type: p.type }))
+    });
+
     setLoading(true);
     try {
       // Create FormData for file upload
@@ -99,7 +229,6 @@ export default function ProfileSetupPage() {
       formDataToSend.append('bio', formData.bio || '');
       formDataToSend.append('spiritualBeliefs', JSON.stringify(formData.spiritualBeliefs));
       formDataToSend.append('spiritualPractices', JSON.stringify(formData.spiritualPractices));
-      formDataToSend.append('lifestyleChoices', JSON.stringify(formData.lifestyleChoices));
       formDataToSend.append('activityLevel', formData.activityLevel);
       formDataToSend.append('intentBadges', JSON.stringify(formData.intentBadges));
       formDataToSend.append('ageRange', JSON.stringify(formData.ageRange));
@@ -125,12 +254,14 @@ export default function ProfileSetupPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        console.error('❌ Profile save failed:', { status: response.status, message: data.message });
         throw new Error(data.message || 'Error saving profile');
       }
 
+      console.log('🎉 Profile created successfully!', { userId: data.profile?.user, profileId: data.profile?._id });
       router.push('/plans');
     } catch (error: any) {
-      console.error('Profile save error:', error);
+      console.error('❌ Profile save error:', error.message);
       alert(error.message || 'Error saving profile');
     } finally {
       setLoading(false);
@@ -190,10 +321,13 @@ export default function ProfileSetupPage() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      errors.name ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="Your full name"
                     required
                   />
+                  {errors.name && <p className="text-red-500 text-sm mt-1">✗ {errors.name}</p>}
                 </div>
 
                 <div>
@@ -204,10 +338,13 @@ export default function ProfileSetupPage() {
                     onChange={(e) => handleChange('age', parseInt(e.target.value))}
                     min="18"
                     max="120"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      errors.age ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="Your age"
                     required
                   />
+                  {errors.age && <p className="text-red-500 text-sm mt-1">✗ {errors.age}</p>}
                 </div>
 
                 <div>
@@ -215,7 +352,9 @@ export default function ProfileSetupPage() {
                   <select
                     value={formData.gender}
                     onChange={(e) => handleChange('gender', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      errors.gender ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     required
                   >
                     <option value="">Select</option>
@@ -224,20 +363,24 @@ export default function ProfileSetupPage() {
                     <option value="non-binary">Non-binary</option>
                     <option value="prefer-not-to-say">Prefer not to say</option>
                   </select>
+                  {errors.gender && <p className="text-red-500 text-sm mt-1">✗ {errors.gender}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Looking for</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Looking for *</label>
                   <select
                     value={formData.genderPreference[0]}
                     onChange={(e) => handleChange('genderPreference', [e.target.value])}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      errors.genderPreference ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   >
                     <option value="all">All</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                     <option value="non-binary">Non-binary</option>
                   </select>
+                  {errors.genderPreference && <p className="text-red-500 text-sm mt-1">✗ {errors.genderPreference}</p>}
                 </div>
               </div>
             </motion.div>
@@ -253,11 +396,13 @@ export default function ProfileSetupPage() {
               className="bg-white rounded-3xl shadow-xl p-6"
             >
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Add Your Photos</h2>
-              <p className="text-gray-600 mb-6">Upload up to 5 photos (JPG or PNG only). The first photo will be your profile picture.</p>
+              <p className="text-gray-600 mb-6">Upload up to 5 photos (JPG or PNG only, max 5MB each). The first photo will be your profile picture.</p>
 
               <div className="space-y-4">
                 {/* Photo Upload Area */}
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
+                <div className={`border-2 border-dashed rounded-xl p-6 text-center ${
+                  errors.photos ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                }`}>
                   <input
                     type="file"
                     id="photo-upload"
@@ -278,6 +423,14 @@ export default function ProfileSetupPage() {
                     <p className="text-sm text-gray-500 mt-1">JPG or PNG only</p>
                   </label>
                 </div>
+
+                {/* Error Message */}
+                {errors.photos && <p className="text-red-500 text-sm">✗ {errors.photos}</p>}
+
+                {/* Photo Count */}
+                {photos.length > 0 && (
+                  <p className="text-sm text-gray-600">✓ {photos.length}/5 photos uploaded</p>
+                )}
 
                 {/* Photo Previews */}
                 {photos.length > 0 && (
@@ -330,7 +483,10 @@ export default function ProfileSetupPage() {
                 ].map((option) => (
                   <button
                     key={option.value}
-                    onClick={() => handleChange('relationshipIntention', option.value)}
+                    onClick={() => {
+                      handleChange('relationshipIntention', option.value);
+                      console.log('✅ Relationship intention selected:', option.value);
+                    }}
                     className={`w-full p-4 rounded-xl border-2 text-left flex items-center gap-3 transition-all ${
                       formData.relationshipIntention === option.value
                         ? 'border-purple-500 bg-purple-50'
@@ -342,6 +498,7 @@ export default function ProfileSetupPage() {
                   </button>
                 ))}
               </div>
+              {errors.relationshipIntention && <p className="text-red-500 text-sm mt-4">✗ {errors.relationshipIntention}</p>}
             </motion.div>
           )}
 
@@ -365,8 +522,10 @@ export default function ProfileSetupPage() {
                       const current = formData.spiritualBeliefs;
                       if (current.includes(belief)) {
                         handleChange('spiritualBeliefs', current.filter(b => b !== belief));
+                        console.log('✅ Belief removed:', belief);
                       } else {
                         handleChange('spiritualBeliefs', [...current, belief]);
+                        console.log('✅ Belief added:', belief);
                       }
                     }}
                     className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
@@ -379,6 +538,8 @@ export default function ProfileSetupPage() {
                   </button>
                 ))}
               </div>
+              {errors.spiritualBeliefs && <p className="text-red-500 text-sm mt-4">✗ {errors.spiritualBeliefs}</p>}
+              {formData.spiritualBeliefs.length > 0 && <p className="text-green-600 text-sm mt-2">✓ {formData.spiritualBeliefs.length} selected</p>}
             </motion.div>
           )}
 
@@ -402,8 +563,10 @@ export default function ProfileSetupPage() {
                       const current = formData.spiritualPractices;
                       if (current.includes(practice)) {
                         handleChange('spiritualPractices', current.filter(p => p !== practice));
+                        console.log('✅ Practice removed:', practice);
                       } else {
                         handleChange('spiritualPractices', [...current, practice]);
+                        console.log('✅ Practice added:', practice);
                       }
                     }}
                     className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
@@ -416,25 +579,30 @@ export default function ProfileSetupPage() {
                   </button>
                 ))}
               </div>
+              {errors.spiritualPractices && <p className="text-red-500 text-sm mt-4">✗ {errors.spiritualPractices}</p>}
+              {formData.spiritualPractices.length > 0 && <p className="text-green-600 text-sm mt-2">✓ {formData.spiritualPractices.length} selected</p>}
             </motion.div>
           )}
 
           {/* Step 6: Bio */}
           {currentStep === 6 && (
             <motion.div
-              key="step5"
+              key="step6"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
               className="bg-white rounded-3xl shadow-xl p-6"
             >
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Tell your story</h2>
-              <p className="text-gray-600 mb-6">Share a bit about yourself</p>
+              <p className="text-gray-600 mb-6">Share a bit about yourself (optional)</p>
 
               <div>
                 <textarea
                   value={formData.bio}
-                  onChange={(e) => handleChange('bio', e.target.value)}
+                  onChange={(e) => {
+                    handleChange('bio', e.target.value);
+                    console.log('✅ Bio updated:', e.target.value.substring(0, 50) + '...');
+                  }}
                   rows={8}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                   placeholder="Tell us about yourself, your journey, what you're looking for..."

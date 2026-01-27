@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function EventsPage() {
+  const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,7 +115,18 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 p-4 max-w-3xl mx-auto pb-24">
-      <h1 className="text-2xl font-bold mb-4">Events</h1>
+      {/* Back Button */}
+      <div className="flex items-center gap-4 mb-6">
+        <button
+          onClick={() => router.back()}
+          className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors border border-gray-200"
+        >
+          <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 className="text-2xl font-bold">Events</h1>
+      </div>
       
       {/* Filter Buttons */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
