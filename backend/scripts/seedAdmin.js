@@ -15,7 +15,7 @@ async function seedAdmin() {
 
     // Check if admin already exists
     const existingAdmin = await User.findOne({ email: 'admin@platform.com' });
-    
+
     if (existingAdmin) {
       console.log('⚠️  Admin user already exists');
       // Update password in case it changed

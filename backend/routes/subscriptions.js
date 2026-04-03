@@ -53,9 +53,9 @@ router.post('/create-checkout', protect, async (req, res) => {
     // TEST MODE: Direct activation without payment
     // ============================================
     // Comment out Stripe code for testing - activate plan immediately
-    
+
     const userId = req.user._id;
-    
+
     // Calculate end date based on billing cycle
     const endDate = new Date();
     if (billingCycle === 'monthly') {
@@ -210,20 +210,20 @@ router.post('/webhook', async (req, res) => {
       case 'checkout.session.completed':
         await handleCheckoutCompleted(event.data.object);
         break;
-      
+
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
         await handleSubscriptionUpdated(event.data.object);
         break;
-      
+
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object);
         break;
-      
+
       case 'invoice.payment_succeeded':
         await handlePaymentSucceeded(event.data.object);
         break;
-      
+
       case 'invoice.payment_failed':
         await handlePaymentFailed(event.data.object);
         break;

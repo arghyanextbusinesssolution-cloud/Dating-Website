@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSocket } from '@/contexts/SocketContext';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import api from '@/lib/api';
-import BottomNavigation from '@/components/BottomNavigation';
+import ResponsiveLayout from '@/components/ResponsiveLayout';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+
+import ChatWindow from '@/components/ChatWindow';
 
 interface Conversation {
   userId: string;
@@ -20,10 +23,14 @@ interface Conversation {
 export default function MessagesPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { showUpgradeModal } = useSubscription();
+  const isBasic = user?.role === 'basic';
   const { socket, connected } = useSocket();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const autoSelectAttempted = useRef(false);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -54,15 +61,21 @@ export default function MessagesPage() {
           matchedAt: conv.matchedAt || null
         }));
         setConversations(formattedConversations);
+
+        // Auto-select first chat on desktop if none selected (only once)
+        if (formattedConversations.length > 0 && !selectedUserId && !autoSelectAttempted.current && typeof window !== 'undefined' && window.innerWidth >= 768) {
+          setSelectedUserId(formattedConversations[0].userId);
+          autoSelectAttempted.current = true;
+        }
       }
     } catch (error: any) {
       if (error.response?.status === 403) {
-        router.push('/plans');
+        showUpgradeModal();
       }
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, selectedUserId]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -71,9 +84,15 @@ export default function MessagesPage() {
     }
 
     if (user) {
+      if (isBasic) {
+        console.log(`[MessagesPage] Unauthorized access attempt by ${user.role} user. Showing upgrade modal.`);
+        showUpgradeModal();
+        return;
+      }
+      console.log(`[MessagesPage] Access granted for ${user.role} user.`);
       fetchConversations();
     }
-  }, [user, authLoading, router, fetchConversations]);
+  }, [user, authLoading, router, fetchConversations, isBasic, showUpgradeModal]);
 
   useEffect(() => {
     if (!socket || !connected || !user) return;
@@ -108,8 +127,8 @@ export default function MessagesPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-yellow-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
       </div>
     );
   }
@@ -117,187 +136,116 @@ export default function MessagesPage() {
   const userProfilePhoto = userProfile?.photos?.find((p: any) => p.isPrimary)?.url || userProfile?.photos?.[0]?.url;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-purple-50 flex flex-col max-w-md mx-auto pb-24">
-      {/* Premium Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-50 px-4 py-4 bg-white/40 backdrop-blur-md border-b border-purple-200"
-      >
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-800">💬 Messages</h1>
-          <div className="text-sm font-semibold text-purple-600 bg-purple-100/60 px-3 py-1 rounded-full">
-            {conversations.length} {conversations.length === 1 ? 'chat' : 'chats'}
+    <ResponsiveLayout userProfilePhoto={userProfilePhoto}>
+      <div className="h-[calc(100vh-64px)] md:h-[calc(100vh-100px)] flex flex-col md:flex-row w-full mx-auto md:p-4 gap-4 overflow-hidden relative z-10">
+        {/* Left Panel: Conversations List */}
+        <section className={`flex-none md:w-[400px] flex flex-col bg-white/30 backdrop-blur-xl rounded-[40px] border border-white/40 overflow-hidden shadow-2xl ${selectedUserId ? 'hidden md:flex' : 'flex'}`}>
+          {/* Header */}
+          <div className="p-6 md:p-5 border-b border-white/20 bg-white/40 backdrop-blur-md">
+            <h1 className="text-2xl font-black text-gray-800 tracking-tight flex items-center gap-3">
+              <span>💬</span> Messages
+              <span className="text-xs bg-purple-500/20 text-purple-600 px-2.5 py-1 rounded-full border border-purple-400/30 ml-auto">
+                {conversations.length} Active
+              </span>
+            </h1>
           </div>
-        </div>
-      </motion.div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-        {conversations.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex-1 flex items-center justify-center h-full min-h-[500px]"
-          >
-            <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg p-8 text-center w-full border border-purple-200">
-              {/* Animated Chat Bubble Icon */}
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="text-7xl mb-6"
-              >
-                💜
-              </motion.div>
-
-              <h2 className="text-3xl font-bold text-gray-800 mb-3">No Connections Yet</h2>
-              <p className="text-gray-600 text-center mb-2">
-                Start matching with kindred spirits to begin your meaningful conversations.
-              </p>
-              <p className="text-sm text-purple-600 font-medium mb-8">
-                When you both like each other, you'll unlock the power of connection! ✨
-              </p>
-
-              {/* Action Buttons */}
-              <div className="space-y-3">
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Link
-                    href="/matches/suggested"
-                    className="block bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-2xl font-bold text-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all"
-                  >
-                    🔥 Find Matches
-                  </Link>
-                </motion.div>
-
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Link
-                    href="/matches/likes"
-                    className="block bg-white/70 backdrop-blur-md text-purple-600 py-4 rounded-2xl font-bold text-lg border-2 border-purple-300 hover:bg-white hover:shadow-lg transition-all"
-                  >
-                    ❤️ See Who Likes You
-                  </Link>
-                </motion.div>
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+            {conversations.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                <div className="text-6xl mb-4 grayscale opacity-30">💜</div>
+                <h2 className="text-xl font-black text-gray-400 uppercase tracking-widest">No Connections</h2>
               </div>
+            ) : (
+              conversations.map((conv, index) => {
+                const isSelected = selectedUserId === conv.userId;
+                const profilePhoto = conv.profile?.photos?.find((p: any) => p.isPrimary)?.url || conv.profile?.photos?.[0]?.url;
+                const lastMessageTime = conv.lastMessage
+                  ? new Date(conv.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : '';
 
-              {/* Info Card */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="mt-8 bg-gradient-to-r from-blue-100/60 to-purple-100/60 rounded-2xl p-4 border border-purple-200"
-              >
-                <p className="text-sm text-gray-700">
-                  <span className="font-bold">💡 Tip:</span> Mutual likes open the door to meaningful connections and spiritual growth together!
-                </p>
-              </motion.div>
-            </div>
-          </motion.div>
-        ) : (
-          <div className="space-y-3">
-            {conversations.map((conv, index) => {
-              const profilePhoto = conv.profile?.photos?.find((p: any) => p.isPrimary)?.url || conv.profile?.photos?.[0]?.url;
-              const lastMessageTime = conv.lastMessage 
-                ? new Date(conv.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                : conv.matchedAt
-                ? new Date(conv.matchedAt).toLocaleDateString()
-                : '';
-
-              return (
-                <motion.div
-                  key={conv.userId}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <Link
-                    href={`/messages/${conv.userId}`}
-                    className="block bg-white/70 backdrop-blur-md rounded-2xl shadow-md hover:shadow-xl hover:bg-white transition-all border border-purple-200 p-4"
+                return (
+                  <motion.div
+                    key={conv.userId}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    onClick={() => {
+                      if (window.innerWidth < 768) {
+                        router.push(`/messages/${conv.userId}`);
+                      } else {
+                        setSelectedUserId(conv.userId);
+                      }
+                    }}
+                    className={`p-4 rounded-[28px] cursor-pointer transition-all border-2 flex items-center gap-4 group relative ${isSelected
+                      ? 'bg-gradient-to-r from-purple-500/80 to-blue-500/80 border-transparent shadow-lg text-white'
+                      : 'bg-white/40 border-white/20 hover:bg-white/60 text-gray-800'
+                      }`}
                   >
-                    <div className="flex items-center gap-4">
-                      {/* Profile Photo */}
-                      <div className="relative">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-300 to-pink-300 flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-purple-300 shadow-md">
-                          {profilePhoto ? (
-                            <img
-                              src={profilePhoto}
-                              alt={conv.profile?.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-3xl text-white font-bold">
-                              {(conv.profile?.name || '?').charAt(0).toUpperCase()}
-                            </span>
-                          )}
-                        </div>
-                        {/* Online Indicator */}
-                        <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-md"></div>
-                      </div>
-
-                      {/* Conversation Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-base font-bold text-gray-800 truncate">
-                            {conv.profile?.name || 'Anonymous'}
-                          </h3>
-                          {lastMessageTime && (
-                            <span className="text-xs text-gray-500 flex-shrink-0 ml-2 font-medium">
-                              {lastMessageTime}
-                            </span>
-                          )}
-                        </div>
-
-                        {conv.lastMessage ? (
-                          <div className="space-y-1">
-                            <p className={`text-sm truncate ${
-                              conv.unreadCount > 0 ? 'font-bold text-gray-800' : 'text-gray-600'
-                            }`}>
-                              {conv.lastMessage.content}
-                            </p>
-                            {conv.unreadCount > 0 && (
-                              <div className="flex items-center gap-1">
-                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                                <span className="text-xs font-semibold text-purple-600">
-                                  {conv.unreadCount} new message{conv.unreadCount > 1 ? 's' : ''}
-                                </span>
-                              </div>
-                            )}
-                          </div>
+                    <div className="relative flex-shrink-0">
+                      <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-purple-300 to-pink-300 flex items-center justify-center overflow-hidden border-2 ${isSelected ? 'border-white/50' : 'border-purple-200'}`}>
+                        {profilePhoto ? (
+                          <img src={profilePhoto} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="flex items-center gap-2">
-                            <motion.span
-                              animate={{ scale: [1, 1.1, 1] }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                              className="text-sm font-bold text-purple-600 bg-purple-100/60 px-2 py-1 rounded-full"
-                            >
-                              ✨ New Match
-                            </motion.span>
-                            <span className="text-sm text-gray-500">Start chatting!</span>
-                          </div>
+                          <span className="text-2xl text-white font-bold">{conv.profile?.name?.charAt(0)}</span>
                         )}
                       </div>
-
-                      {/* Arrow Indicator */}
-                      <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                      <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-white"></div>
                     </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-      </div>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation userProfilePhoto={userProfilePhoto} />
-    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start mb-0.5">
+                        <h3 className="font-black text-sm truncate uppercase tracking-wide">
+                          {conv.profile?.name || 'Anonymous'}
+                        </h3>
+                        <span className={`text-[10px] font-bold ${isSelected ? 'text-white/70' : 'text-gray-400'}`}>
+                          {lastMessageTime}
+                        </span>
+                      </div>
+                      <p className={`text-xs truncate ${isSelected ? 'text-white/80' : 'text-gray-500'} ${conv.unreadCount > 0 ? 'font-bold' : ''}`}>
+                        {conv.lastMessage?.content || 'Start a soul session...'}
+                      </p>
+                    </div>
+
+                    {conv.unreadCount > 0 && (
+                      <div className="absolute right-4 bottom-4 w-5 h-5 bg-pink-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                        {conv.unreadCount}
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })
+            )}
+          </div>
+        </section>
+
+        {/* Right Panel: Chat Window (Desktop) */}
+        <section className={`flex-1 flex bg-white/30 backdrop-blur-xl rounded-[40px] border border-white/40 overflow-hidden shadow-2xl relative ${!selectedUserId ? 'hidden md:flex' : 'flex'}`}>
+          {selectedUserId ? (
+            <ChatWindow
+              otherUserId={selectedUserId}
+              onClose={() => setSelectedUserId(null)}
+              isEmbedded={true}
+            />
+          ) : (
+            <div className="h-full w-full flex flex-col items-center justify-center text-center p-12 space-y-6">
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 4, repeat: Infinity }}
+                className="text-8xl"
+              >
+                ✨
+              </motion.div>
+              <div className="max-w-xs">
+                <h3 className="text-xl font-black text-gray-800 mb-2 uppercase tracking-[0.2em]">Select a Soul</h3>
+                <p className="text-gray-500 font-bold text-sm leading-relaxed">
+                  Choose a companion from the list to begin your deep vibrational exchange.
+                </p>
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
+    </ResponsiveLayout>
   );
 }

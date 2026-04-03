@@ -46,7 +46,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     // Initialize socket connection
     // Use Render backend URL in production, localhost in development
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spiritualunitymatch-backend.onrender.com';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    if (!API_URL) return;
     const socketUrl = API_URL.replace('/api', '').replace('/api/', ''); // Remove /api if present
 
     console.log('🔌 [Socket] Environment API URL:', process.env.NEXT_PUBLIC_API_URL);
@@ -117,7 +118,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   // Join a conversation room
   const joinConversation = useCallback((otherUserId: string) => {
     if (!socketRef.current || !connected || !otherUserId) return;
-    
+
     console.log('📥 [Socket] Joining conversation with:', otherUserId);
     socketRef.current.emit('join_conversation', { otherUserId });
   }, [connected]);
@@ -125,7 +126,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   // Leave a conversation room
   const leaveConversation = useCallback((otherUserId: string) => {
     if (!socketRef.current || !otherUserId) return;
-    
+
     console.log('📤 [Socket] Leaving conversation with:', otherUserId);
     socketRef.current.emit('leave_conversation', { otherUserId });
   }, []);
@@ -133,7 +134,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   // Send typing indicator
   const sendTypingIndicator = useCallback((recipientId: string, isTyping: boolean) => {
     if (!socketRef.current || !connected || !recipientId) return;
-    
+
     if (isTyping) {
       socketRef.current.emit('typing_start', { recipientId });
     } else {
@@ -144,7 +145,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   // Mark message as read
   const markMessageAsRead = useCallback((messageId: string, senderId: string) => {
     if (!socketRef.current || !connected || !messageId || !senderId) return;
-    
+
     socketRef.current.emit('message_read', { messageId, senderId });
   }, [connected]);
 

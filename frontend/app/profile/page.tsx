@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import api from '@/lib/api';
-import BottomNavigation from '@/components/BottomNavigation';
+import ResponsiveLayout from '@/components/ResponsiveLayout';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -140,294 +140,221 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-purple-50 flex flex-col max-w-md mx-auto pb-24">
-      {/* Top Navigation Bar */}
-      <div className="sticky top-0 z-50 px-4 py-4 flex items-center justify-between">
-        <button
-          onClick={() => router.back()}
-          className="w-10 h-10 rounded-full bg-white/70 backdrop-blur-md flex items-center justify-center hover:bg-white transition-colors border border-purple-200 shadow-sm"
-        >
-          <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        
-        <h1 className="text-xl font-bold text-gray-800">Profile</h1>
-        
-        <Link
-          href="/profile/edit"
-          className="w-10 h-10 rounded-full bg-white/70 backdrop-blur-md flex items-center justify-center hover:bg-white transition-colors border border-purple-200 shadow-sm"
-        >
-          <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        </Link>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 px-4 py-6 overflow-y-auto space-y-6">
-        {/* Profile Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
-          {/* Profile Photo - Centered Circle */}
-          <div className="flex justify-center mb-6">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-400 shadow-xl">
-              {profilePhoto ? (
-                <img src={profilePhoto} alt={profile.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-purple-300 to-pink-300 flex items-center justify-center">
-                  <span className="text-5xl font-bold text-white">
-                    {profile.name?.charAt(0).toUpperCase() || '?'}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Name and Title */}
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <h1 className="text-3xl font-bold text-gray-800">{profile.name}</h1>
-            {profile.isApproved && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                whileHover={{ scale: 1.1 }}
-                className="text-xl"
-                title="Verified Profile"
-              >
-                ✅
-              </motion.div>
-            )}
-          </div>
-          {profile.user?.email && (
-            <p className="text-sm text-gray-600 mb-1">
-              <a href={`mailto:${profile.user.email}`} className="text-gray-700 underline">
-                {profile.user.email}
-              </a>
-            </p>
-          )}
-          <p className="text-purple-600 text-lg font-medium mb-6">{profile.nickname || 'Spiritual Seeker'}</p>
-
-          {/* Stats Section */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="bg-white/60 backdrop-blur-md rounded-2xl p-4 border border-purple-200 shadow-sm">
-              <p className="text-2xl font-bold text-purple-600">{stats.activities}</p>
-              <p className="text-sm text-gray-600 mt-1">Activities</p>
-            </div>
-            <div className="bg-white/60 backdrop-blur-md rounded-2xl p-4 border border-purple-200 shadow-sm">
-              <p className="text-2xl font-bold text-purple-600">{stats.likes}</p>
-              <p className="text-sm text-gray-600 mt-1">Like</p>
-            </div>
-            <div className="bg-white/60 backdrop-blur-md rounded-2xl p-4 border border-purple-200 shadow-sm">
-              <p className="text-2xl font-bold text-purple-600">{stats.moments}</p>
-              <p className="text-sm text-gray-600 mt-1">Life Moment</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Subscription Card */}
-        {subscription && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-2xl p-4 shadow-lg border border-purple-300"
-          >
-            <Link
-              href="/subscription"
-              className="block group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="text-white">
-                  <p className="text-xs uppercase tracking-wider font-semibold opacity-90">Current Plan</p>
-                  <h3 className="text-lg font-bold capitalize flex items-center gap-2 mt-1">
-                    {subscription.plan === 'basic' && '🌙 Starter'}
-                    {subscription.plan === 'standard' && '⭐ Seeker'}
-                    {subscription.plan === 'premium' && '👑 Premium'}
-                  </h3>
-                  <p className="text-sm opacity-90 mt-1">
-                    {subscription.billingCycle === 'monthly' ? '📅 Monthly' : '📆 Yearly'}
-                  </p>
-                </div>
-                <motion.div
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="text-white text-3xl"
-                >
-                  ✨
-                </motion.div>
-              </div>
-              <div className="mt-3 bg-white/20 rounded-lg px-3 py-2 group-hover:bg-white/30 transition-colors">
-                <p className="text-white text-sm font-semibold text-center">Tap to manage →</p>
-              </div>
-            </Link>
-          </motion.div>
-        )}
-
-        {/* Menu Items */}
-        <div className="space-y-3">
-          {menuItems.map((item, index) => (
+    <ResponsiveLayout userProfilePhoto={userProfilePhoto}>
+      <div className="min-h-screen flex flex-col max-w-5xl mx-auto md:p-6 pb-24 md:pb-6 relative z-10">
+        <div className="flex-1 flex flex-col md:flex-row gap-6">
+          {/* Left Column: Profile Card */}
+          <section className="md:w-1/3 flex flex-col gap-6">
             <motion.div
-              key={index}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white/30 backdrop-blur-xl rounded-[40px] border border-white/40 p-8 shadow-2xl text-center flex flex-col items-center"
             >
-              {item.href?.startsWith('#') ? (
-                <button
-                  onClick={() => {
-                    if (item.label === 'Contact us') {
-                      window.location.href = 'mailto:support@spiritualunitymatch.com';
-                    }
-                  }}
-                  className="w-full bg-white/60 backdrop-blur-md hover:bg-white transition-colors border border-purple-200 rounded-2xl p-4 flex items-center justify-between group shadow-sm"
-                >
-                  <span className="flex items-center gap-3">
-                    <span className="text-xl">{item.icon}</span>
-                    <span className="text-gray-800 font-medium">{item.label}</span>
-                  </span>
-                  <svg className="w-5 h-5 text-gray-500 group-hover:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              ) : (
-                <Link
-                  href={item.href}
-                  className="w-full bg-white/60 backdrop-blur-md hover:bg-white transition-colors border border-purple-200 rounded-2xl p-4 flex items-center justify-between group shadow-sm"
-                >
-                  <span className="flex items-center gap-3">
-                    <span className="text-xl">{item.icon}</span>
-                    <span className="text-gray-800 font-medium">{item.label}</span>
-                  </span>
-                  <svg className="w-5 h-5 text-gray-500 group-hover:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-              )}
-            </motion.div>
-          ))}
-
-          {/* Logout Button */}
-          <motion.button
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            onClick={async () => {
-              setLoggingOut(true);
-              await logout();
-            }}
-            disabled={loggingOut}
-            className="w-full bg-red-100/60 backdrop-blur-md hover:bg-red-100 transition-colors border border-red-300 rounded-2xl p-4 flex items-center justify-between group shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <span className="flex items-center gap-3">
-              {loggingOut ? (
-                <>
-                  <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600"></span>
-                  <span className="text-red-700 font-medium">Logging out...</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-xl">🚪</span>
-                  <span className="text-red-700 font-medium">Logout</span>
-                </>
-              )}
-            </span>
-            {!loggingOut && (
-              <svg className="w-5 h-5 text-red-600 group-hover:text-red-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            )}
-          </motion.button>
-        </div>
-
-        {/* Events Section */}
-        {events.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white/60 backdrop-blur-md border border-purple-200 rounded-2xl p-4 shadow-sm"
-          >
-            <p className="text-xs text-gray-600 uppercase tracking-wide mb-4 font-semibold">Registered Events</p>
-            <div className="space-y-3">
-              {events.map((event: any, idx: number) => (
-                <Link
-                  key={event._id}
-                  href={`/events/${event._id}`}
-                  className="block bg-white/50 hover:bg-white transition-colors rounded-xl p-3 border border-purple-100 hover:border-purple-300"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-gray-800 font-medium text-sm mb-1">{event.title}</h3>
-                      <p className="text-gray-600 text-xs flex items-center gap-1">
-                        <span>📍</span> {event.location}
-                      </p>
-                      <p className="text-gray-600 text-xs flex items-center gap-1 mt-1">
-                        <span>🕐</span> {new Date(event.startDate).toLocaleDateString()}
-                      </p>
+              {/* Profile Photo */}
+              <div className="relative mb-6 group">
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/50 shadow-xl ring-4 ring-purple-500/20 transition-transform group-hover:scale-105">
+                  {profilePhoto ? (
+                    <img src={profilePhoto} alt={profile.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
+                      <span className="text-5xl font-black text-white">
+                        {profile.name?.charAt(0).toUpperCase() || '?'}
+                      </span>
                     </div>
-                    <svg className="w-4 h-4 text-gray-500 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  )}
+                </div>
+                {profile.isApproved && (
+                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-lg border border-purple-100 ring-2 ring-purple-500/20" title="Verified Soul">
+                    <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
                     </svg>
                   </div>
+                )}
+              </div>
+
+              {/* Identity */}
+              <h1 className="text-3xl font-black text-gray-800 tracking-tight uppercase mb-1">{profile.name}</h1>
+              <p className="text-purple-600 text-[11px] font-black uppercase tracking-[0.2em] mb-4">{profile.nickname || 'Spiritual seeker'}</p>
+
+              {/* Vital Details */}
+              <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+                <span className="bg-white/40 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-black text-gray-600 border border-white/20 uppercase tracking-widest flex items-center gap-1.5">
+                  <span className="opacity-40 text-xs">⏳</span> {profile.age} Cycles
+                </span>
+                <span className="bg-white/40 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-black text-gray-600 border border-white/20 uppercase tracking-widest flex items-center gap-1.5 capitalize">
+                  <span className="opacity-40 text-xs">🌀</span> {profile.gender}
+                </span>
+                <span className="bg-white/40 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-black text-gray-600 border border-white/20 uppercase tracking-widest flex items-center gap-1.5 capitalize">
+                  <span className="opacity-40 text-xs">💖</span> Seeking {profile.genderPreference?.join(', ') || 'All'}
+                </span>
+              </div>
+
+              {profile.user?.email && (
+                <a href={`mailto:${profile.user.email}`} className="text-[10px] font-bold text-gray-400 hover:text-purple-500 transition-colors uppercase tracking-widest mb-8">
+                  {profile.user.email}
+                </a>
+              )}
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-3 gap-3 w-full">
+                <div className="bg-white/40 backdrop-blur-md rounded-2xl p-3 border border-white/20">
+                  <p className="text-xl font-black text-purple-600">{stats.activities}</p>
+                  <p className="text-[9px] font-black text-gray-500 uppercase tracking-tighter">Tasks</p>
+                </div>
+                <div className="bg-white/40 backdrop-blur-md rounded-2xl p-3 border border-white/20">
+                  <p className="text-xl font-black text-purple-600">{stats.likes}</p>
+                  <p className="text-[9px] font-black text-gray-500 uppercase tracking-tighter">Likes</p>
+                </div>
+                <div className="bg-white/40 backdrop-blur-md rounded-2xl p-3 border border-white/20">
+                  <p className="text-xl font-black text-purple-600">{stats.moments}</p>
+                  <p className="text-[9px] font-black text-gray-500 uppercase tracking-tighter">Moments</p>
+                </div>
+              </div>
+
+              <div className="mt-8 w-full">
+                <Link
+                  href="/profile/edit"
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-purple-200 hover:scale-[1.02] transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Edit profile
                 </Link>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Profile Details Section - Hidden but available */}
-        {(profile.bio || profile.spiritualBeliefs?.length > 0 || profile.spiritualPractices?.length > 0) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white/60 backdrop-blur-md border border-purple-200 rounded-2xl p-4 shadow-sm"
-          >
-            {profile.bio && (
-              <div className="mb-4">
-                <p className="text-xs text-gray-600 uppercase tracking-wide mb-2 font-semibold">About</p>
-                <p className="text-gray-700 text-sm leading-relaxed">{profile.bio}</p>
               </div>
-            )}
+            </motion.div>
 
-            {profile.spiritualBeliefs && profile.spiritualBeliefs.length > 0 && (
-              <div className="mb-4">
-                <p className="text-xs text-gray-600 uppercase tracking-wide mb-2 font-semibold">Spiritual Beliefs</p>
-                <div className="flex flex-wrap gap-2">
-                  {profile.spiritualBeliefs.map((belief: string, idx: number) => (
-                    <span
-                      key={idx}
-                      className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-xs border border-purple-300"
-                    >
-                      {belief.replace(/-/g, ' ')}
-                    </span>
-                  ))}
+            {/* Subscription Section */}
+            {subscription && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-gradient-to-br from-purple-500/90 to-blue-600/90 backdrop-blur-xl rounded-[35px] p-6 shadow-2xl relative overflow-hidden group border border-white/20"
+              >
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform">
+                  <span className="text-6xl">✨</span>
                 </div>
-              </div>
-            )}
-
-            {profile.spiritualPractices && profile.spiritualPractices.length > 0 && (
-              <div>
-                <p className="text-xs text-gray-600 uppercase tracking-wide mb-2 font-semibold">Practices</p>
-                <div className="flex flex-wrap gap-2">
-                  {profile.spiritualPractices.map((practice: string, idx: number) => (
-                    <span
-                      key={idx}
-                      className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs border border-blue-300"
-                    >
-                      {practice.replace(/-/g, ' ')}
-                    </span>
-                  ))}
+                <div className="relative z-10">
+                  <p className="text-[10px] font-black text-white/70 uppercase tracking-[0.2em] mb-1">Vibrational level</p>
+                  <h3 className="text-xl font-black text-white capitalize flex items-center gap-2 mb-4">
+                    {subscription.plan === 'basic' && '🌙 Starter soul'}
+                    {subscription.plan === 'standard' && '⭐ Match seeker'}
+                    {subscription.plan === 'premium' && '👑 Divine premium'}
+                  </h3>
+                  <Link
+                    href="/subscription"
+                    className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-[10px] font-black px-4 py-2 rounded-xl transition-colors uppercase tracking-widest"
+                  >
+                    Manage connection →
+                  </Link>
                 </div>
-              </div>
+              </motion.div>
             )}
-          </motion.div>
-        )}
+          </section>
+
+          {/* Right Column: Menu & Details */}
+          <section className="md:w-2/3 flex flex-col gap-6">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-white/30 backdrop-blur-xl rounded-[40px] border border-white/40 overflow-hidden shadow-2xl flex flex-col h-full"
+            >
+              <div className="p-6 md:p-8 bg-white/40 border-b border-white/20">
+                <h2 className="text-xl font-black text-gray-800 tracking-tight uppercase">Settings & connections</h2>
+              </div>
+
+              <div className="flex-1 p-6 md:p-8 space-y-3">
+                {menuItems.map((item, index) => (
+                  <motion.div
+                    key={index}
+                    whileHover={{ x: 5 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                  >
+                    {item.href?.startsWith('#') ? (
+                      <button
+                        onClick={() => {
+                          if (item.label === 'Contact us') {
+                            window.location.href = 'mailto:support@spiritualunitymatch.com';
+                          }
+                        }}
+                        className="w-full bg-white/40 hover:bg-white/60 transition-all border border-white/20 rounded-2xl p-4 flex items-center justify-between group"
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-base grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all">{item.icon}</span>
+                          <span className="text-gray-700 font-bold text-sm tracking-tight">{item.label}</span>
+                        </span>
+                        <svg className="w-4 h-4 text-gray-300 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className="w-full bg-white/40 hover:bg-white/60 transition-all border border-white/20 rounded-2xl p-4 flex items-center justify-between group"
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-base grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all">{item.icon}</span>
+                          <span className="text-gray-700 font-bold text-sm tracking-tight">{item.label}</span>
+                        </span>
+                        <svg className="w-4 h-4 text-gray-300 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    )}
+                  </motion.div>
+                ))}
+
+                {/* Logout */}
+                <motion.button
+                  whileHover={{ x: 5 }}
+                  onClick={async () => {
+                    setLoggingOut(true);
+                    await logout();
+                  }}
+                  disabled={loggingOut}
+                  className="w-full bg-red-50/40 hover:bg-red-50/60 transition-all border border-red-100/40 rounded-2xl p-4 flex items-center justify-between group disabled:opacity-50"
+                >
+                  <span className="flex items-center gap-3">
+                    {loggingOut ? (
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500" />
+                    ) : (
+                      <span className="text-base">🚪</span>
+                    )}
+                    <span className="text-red-600 font-bold text-sm tracking-tight">{loggingOut ? 'Ending session...' : 'Logout'}</span>
+                  </span>
+                  <svg className="w-4 h-4 text-red-300 group-hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7" />
+                  </svg>
+                </motion.button>
+              </div>
+
+              {/* Bio / Beliefs area */}
+              {(profile.bio || profile.spiritualBeliefs?.length > 0) && (
+                <div className="p-8 bg-white/20 border-t border-white/20 space-y-6">
+                  {profile.bio && (
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Soul mission</p>
+                      <p className="text-sm font-medium text-gray-600 leading-relaxed italic">"{profile.bio}"</p>
+                    </div>
+                  )}
+                  {profile.spiritualBeliefs?.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Core vibrations</p>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.spiritualBeliefs.map((belief: string, idx: number) => (
+                          <span key={idx} className="bg-purple-100/50 backdrop-blur-sm text-purple-700 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-purple-200">
+                            {belief.replace(/-/g, ' ')}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          </section>
+        </div>
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNavigation userProfilePhoto={userProfilePhoto} />
-    </div>
+    </ResponsiveLayout>
   );
 }

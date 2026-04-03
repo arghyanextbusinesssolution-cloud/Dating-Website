@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface BottomNavigationProps {
   userProfilePhoto?: string | null;
@@ -9,6 +10,10 @@ interface BottomNavigationProps {
 
 export default function BottomNavigation({ userProfilePhoto }: BottomNavigationProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user } = useAuth();
+  const { showUpgradeModal, hideUpgradeModal } = useSubscription();
+  const isBasic = user?.role === 'basic';
 
   const navItems = [
     {
@@ -49,6 +54,16 @@ export default function BottomNavigation({ userProfilePhoto }: BottomNavigationP
       activePaths: ['/messages'],
     },
     {
+      href: '/events',
+      label: 'Events',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      ),
+      activePaths: ['/events'],
+    },
+    {
       href: '/profile',
       label: 'Profile',
       icon: userProfilePhoto ? (
@@ -69,47 +84,67 @@ export default function BottomNavigation({ userProfilePhoto }: BottomNavigationP
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 md:hidden">
       <div className="max-w-md mx-auto">
         <div className="flex items-center justify-around px-2 py-3">
           {navItems.map((item) => {
             const active = isActive(item);
             const isCenter = item.isCenter;
-            
+            const isRestricted = (item.label === 'Messages' || item.label === 'Likes') && isBasic;
+
+            const handleClick = (e: React.MouseEvent) => {
+              if (isRestricted) {
+                console.log(`[BottomNav] Access to ${item.label} DENIED. User role: ${user?.role}. Showing upgrade modal.`);
+                e.preventDefault();
+                showUpgradeModal();
+              } else {
+                const isSecure = (item.label === 'Messages' || item.label === 'Likes');
+                if (isSecure) {
+                  console.log(`[BottomNav] Access to ${item.label} GRANTED. User role: ${user?.role}. Navigating to ${item.href}.`);
+                } else {
+                  console.log(`[BottomNav] Navigating to unrestricted route: ${item.href}`);
+                }
+                hideUpgradeModal();
+                router.push(item.href);
+              }
+            };
+
             return (
-              <Link
+              <button
                 key={item.href}
-                href={item.href}
+                onClick={handleClick}
                 className="flex flex-col items-center justify-center gap-1 flex-1 min-w-0"
               >
                 <div
-                  className={`${
-                    isCenter
-                      ? 'w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 shadow-lg flex items-center justify-center'
-                      : `w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                          active
-                            ? 'bg-purple-100 text-purple-600'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`
-                  } ${item.isProfile && !userProfilePhoto ? 'bg-gray-100' : ''}`}
+                  className={`${isCenter
+                    ? 'w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 shadow-lg flex items-center justify-center'
+                    : `w-10 h-10 rounded-full flex items-center justify-center transition-colors ${active
+                      ? 'bg-purple-100 text-purple-600'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`
+                    } ${item.isProfile && !userProfilePhoto ? 'bg-gray-100' : ''}`}
                 >
                   {item.isProfile && userProfilePhoto ? (
                     <div className="w-full h-full rounded-full overflow-hidden">
                       {item.icon}
                     </div>
                   ) : (
-                    item.icon
+                    <div className="relative">
+                      {item.icon}
+                      {isRestricted && (
+                        <span className="absolute -top-1.5 -right-1.5 text-[10px] filter saturate-0 opacity-70">🔒</span>
+                      )}
+                    </div>
                   )}
                 </div>
                 <span
-                  className={`text-[10px] font-medium leading-tight ${
-                    active ? 'text-purple-600' : 'text-gray-600'
-                  }`}
+                  className={`text-[10px] font-medium leading-tight ${active ? 'text-purple-600' : 'text-gray-600'
+                    }`}
                   style={{ maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                 >
                   {item.label}
                 </span>
-              </Link>
+              </button>
             );
           })}
         </div>

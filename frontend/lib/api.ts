@@ -7,7 +7,7 @@ import Cookies from 'js-cookie';
 
 // API client configuration
 // This is like a helper that talks to our backend server
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://spiritualunitymatch-backend.onrender.com/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 console.log('🌐 [API] Initializing with URL:', API_URL);
 console.log('🌐 [API] Environment:', process.env.NODE_ENV);

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import api from '@/lib/api';
+import ResponsiveLayout from '@/components/ResponsiveLayout';
 
 const SPIRITUAL_BELIEFS = [
   'buddhism', 'christianity', 'hinduism', 'islam', 'judaism',
@@ -144,212 +145,177 @@ export default function EditProfilePage() {
       setSaving(false);
     }
   };
-
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-purple-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
-      </div>
+      <ResponsiveLayout>
+        <div className="min-h-screen flex items-center justify-center relative z-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+        </div>
+      </ResponsiveLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-purple-50 flex flex-col max-w-md mx-auto pb-24">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-50 px-4 py-4 flex items-center justify-between bg-white/40 backdrop-blur-md border-b border-purple-200"
-      >
-        <button
-          onClick={() => router.back()}
-          className="w-10 h-10 rounded-full bg-white/70 backdrop-blur-md flex items-center justify-center hover:bg-white transition-colors border border-purple-200 shadow-sm"
-        >
-          <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="text-xl font-bold text-gray-800">Edit Profile</h1>
-        <div className="w-10" />
-      </motion.div>
+    <ResponsiveLayout>
+      <div className="min-h-screen flex flex-col max-w-2xl mx-auto md:p-6 pb-24 md:pb-6 relative z-10">
 
-      {/* Form Container */}
-      <div className="flex-1 px-4 py-8 overflow-y-auto">
-        <motion.form
+        {/* Form Container (Glassy Card) */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          onSubmit={handleSubmit}
-          className="space-y-6"
+          className="bg-white/30 backdrop-blur-xl rounded-[40px] border border-white/40 shadow-2xl overflow-hidden flex flex-col flex-1"
         >
-          {/* Success Message */}
-          {successMessage && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-green-100/60 backdrop-blur-md border border-green-300 rounded-2xl p-4 text-green-700 font-medium text-center"
+          {/* Header */}
+          <div className="p-6 md:p-8 bg-white/40 border-b border-white/20 flex items-center justify-between sticky top-0 z-20">
+            <button
+              onClick={() => router.back()}
+              className="w-10 h-10 rounded-full bg-white/60 hover:bg-white/80 transition-colors flex items-center justify-center border border-white/40 shadow-sm group"
             >
-              {successMessage}
-            </motion.div>
-          )}
+              <svg className="w-5 h-5 text-gray-600 group-hover:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <h1 className="text-xl font-black text-gray-800 tracking-tight uppercase">Edit Essence</h1>
+            <div className="w-10" />
+          </div>
 
-          {/* Error Message */}
-          {errors.submit && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-red-100/60 backdrop-blur-md border border-red-300 rounded-2xl p-4 text-red-700 font-medium text-center"
-            >
-              {errors.submit}
-            </motion.div>
-          )}
-
-          {/* Premium Header Card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 rounded-3xl p-6 text-white shadow-xl border border-purple-300"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-2xl font-bold">Update Your Essence</h2>
-              <span className="text-3xl">✨</span>
-            </div>
-            <p className="text-purple-100 text-sm">
-              Keep your spiritual profile fresh and authentic
-            </p>
-          </motion.div>
-
-          {/* Name Field */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleChange('name', e.target.value)}
-              placeholder="Your name"
-              className={`w-full bg-white/70 backdrop-blur-md border rounded-2xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all shadow-sm ${
-                errors.name ? 'border-red-500 bg-red-50/70' : 'border-purple-200'
-              }`}
-            />
-            {errors.name && (
-              <p className="text-red-600 text-sm mt-1">{errors.name}</p>
-            )}
-          </motion.div>
-
-          {/* Email Field */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Email Address
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleChange('email', e.target.value)}
-              placeholder="your@email.com"
-              className={`w-full bg-white/70 backdrop-blur-md border rounded-2xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all shadow-sm ${
-                errors.email ? 'border-red-500 bg-red-50/70' : 'border-purple-200'
-              }`}
-            />
-            {errors.email && (
-              <p className="text-red-600 text-sm mt-1">{errors.email}</p>
-            )}
-          </motion.div>
-
-          {/* Spiritual Beliefs Section */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Spiritual Beliefs 🙏
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {SPIRITUAL_BELIEFS.map((belief) => (
-                <button
-                  key={belief}
-                  type="button"
-                  onClick={() => toggleBeliefs(belief)}
-                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-all border ${
-                    formData.spiritualBeliefs.includes(belief)
-                      ? 'bg-purple-500 text-white border-purple-600 shadow-lg shadow-purple-500/30'
-                      : 'bg-white/60 text-gray-700 border-purple-200 hover:bg-purple-100/40'
-                  }`}
+          <div className="flex-1 p-6 md:p-8 overflow-y-auto">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Success/Error Messages */}
+              {successMessage && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-green-100/80 backdrop-blur-md border border-green-300 rounded-2xl p-4 text-green-800 font-bold text-sm tracking-tight text-center"
                 >
-                  {belief.replace(/-/g, ' ')}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Spiritual Practices Section */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Spiritual Practices 🧘
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {SPIRITUAL_PRACTICES.map((practice) => (
-                <button
-                  key={practice}
-                  type="button"
-                  onClick={() => togglePractices(practice)}
-                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-all border ${
-                    formData.spiritualPractices.includes(practice)
-                      ? 'bg-blue-500 text-white border-blue-600 shadow-lg shadow-blue-500/30'
-                      : 'bg-white/60 text-gray-700 border-purple-200 hover:bg-blue-100/40'
-                  }`}
+                  {successMessage}
+                </motion.div>
+              )}
+              {errors.submit && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-red-100/80 backdrop-blur-md border border-red-300 rounded-2xl p-4 text-red-800 font-bold text-sm tracking-tight text-center"
                 >
-                  {practice.replace(/-/g, ' ')}
-                </button>
-              ))}
-            </div>
-          </motion.div>
+                  {errors.submit}
+                </motion.div>
+              )}
 
-          {/* Submit Button */}
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            type="submit"
-            disabled={saving}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-2xl font-bold text-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-8"
-          >
-            {saving ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                Saving...
+              {/* Premium Header Card */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-gradient-to-br from-purple-500/90 to-blue-600/90 rounded-[30px] p-6 text-white shadow-xl relative overflow-hidden group border border-white/20"
+              >
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform">
+                  <span className="text-6xl">✨</span>
+                </div>
+                <div className="relative z-10">
+                  <h2 className="text-2xl font-black tracking-tight mb-1">Update Your Soul</h2>
+                  <p className="text-white/80 text-xs font-bold uppercase tracking-widest">
+                    Keep your vibrational frequency authentic
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Identity Fields */}
+              <div className="space-y-6">
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+                  <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-4">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => handleChange('name', e.target.value)}
+                    placeholder="Your soul name"
+                    className={`w-full bg-white/50 backdrop-blur-md border rounded-full px-6 py-4 text-gray-800 font-bold placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all shadow-inner ${errors.name ? 'border-red-400 bg-red-50/50' : 'border-white/40 focus:border-purple-300'
+                      }`}
+                  />
+                  {errors.name && <p className="text-red-500 text-xs font-bold mt-2 pl-4">{errors.name}</p>}
+                </motion.div>
+
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+                  <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-4">
+                    Email Connection
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleChange('email', e.target.value)}
+                    placeholder="your@email.com"
+                    className={`w-full bg-white/50 backdrop-blur-md border rounded-full px-6 py-4 text-gray-800 font-bold placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all shadow-inner ${errors.email ? 'border-red-400 bg-red-50/50' : 'border-white/40 focus:border-purple-300'
+                      }`}
+                  />
+                  {errors.email && <p className="text-red-500 text-xs font-bold mt-2 pl-4">{errors.email}</p>}
+                </motion.div>
               </div>
-            ) : (
-              'Save Changes ✨'
-            )}
-          </motion.button>
 
-          {/* Info Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="bg-blue-100/60 backdrop-blur-md border border-blue-300 rounded-2xl p-4"
-          >
-            <p className="text-blue-900 text-sm">
-              <span className="font-semibold">💡 Tip:</span> These fields help us match you with compatible souls. Keep them updated!
-            </p>
-          </motion.div>
-        </motion.form>
+              {/* Spiritual Beliefs */}
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="pt-4 border-t border-white/20">
+                <label className="block text-sm font-black text-gray-800 tracking-tight uppercase mb-4">
+                  Spiritual Path 🙏
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {SPIRITUAL_BELIEFS.map((belief) => (
+                    <button
+                      key={belief}
+                      type="button"
+                      onClick={() => toggleBeliefs(belief)}
+                      className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${formData.spiritualBeliefs.includes(belief)
+                        ? 'bg-purple-500 text-white border-purple-600 shadow-lg shadow-purple-500/30 scale-105'
+                        : 'bg-white/40 text-gray-600 border-white/40 hover:bg-white/60 hover:scale-105'
+                        }`}
+                    >
+                      {belief.replace(/-/g, ' ')}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Spiritual Practices */}
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="pt-4 border-t border-white/20">
+                <label className="block text-sm font-black text-gray-800 tracking-tight uppercase mb-4">
+                  Daily Practices 🧘
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {SPIRITUAL_PRACTICES.map((practice) => (
+                    <button
+                      key={practice}
+                      type="button"
+                      onClick={() => togglePractices(practice)}
+                      className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${formData.spiritualPractices.includes(practice)
+                        ? 'bg-blue-500 text-white border-blue-600 shadow-lg shadow-blue-500/30 scale-105'
+                        : 'bg-white/40 text-gray-600 border-white/40 hover:bg-white/60 hover:scale-105'
+                        }`}
+                    >
+                      {practice.replace(/-/g, ' ')}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Submit Button */}
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="pt-8 w-full">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:shadow-xl hover:shadow-purple-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-[0.98]"
+                >
+                  {saving ? (
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Manifesting changes...
+                    </div>
+                  ) : (
+                    'Save Essence ✨'
+                  )}
+                </button>
+              </motion.div>
+            </form>
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </ResponsiveLayout>
   );
 }

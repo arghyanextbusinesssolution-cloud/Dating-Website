@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MaskContainer } from '@/components/ui/svg-mask-effect';
 import { AnimatedTestimonials } from '@/components/ui/animated-testimonials';
-import NavbarWrapper from '@/components/NavbarWrapper';
+import DefaultNavbar from '@/components/DefaultNavbar';
 
 // Back to Top Button Component
 const BackToTopButton = () => {
@@ -22,18 +22,18 @@ const BackToTopButton = () => {
       const scrollTop = window.scrollY;
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
-      
+
       // Calculate scroll progress more accurately
       const totalScrollable = documentHeight - windowHeight;
       const progress = totalScrollable > 0 ? (scrollTop / totalScrollable) * 100 : 0;
-      
+
       setScrollProgress(Math.min(Math.max(progress, 0), 100));
       setIsVisible(scrollTop > 300); // Show after scrolling 300px
     };
 
     // Initial calculation
     handleScroll();
-    
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -287,7 +287,7 @@ const HeartSyncGame = () => {
     // Find the highest score
     const maxScore = Math.max(...Object.values(scores));
     const resultKey = Object.keys(scores).find(key => scores[key as keyof typeof scores] === maxScore) as keyof typeof results;
-    
+
     return results[resultKey];
   };
 
@@ -432,16 +432,15 @@ const ImageSlider = () => {
           />
         </motion.div>
       ))}
-      
+
       {/* Slider indicators */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
         {images.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-3 h-3 rounded-full transition-colors ${
-              index === currentIndex ? 'bg-white' : 'bg-white/50'
-            }`}
+            className={`w-3 h-3 rounded-full transition-colors ${index === currentIndex ? 'bg-white' : 'bg-white/50'
+              }`}
           />
         ))}
       </div>
@@ -452,7 +451,7 @@ const ImageSlider = () => {
 export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  
+
   // Modal state
   const [showHeartSyncModal, setShowHeartSyncModal] = useState(false);
 
@@ -485,7 +484,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
-      <NavbarWrapper />
+      <DefaultNavbar />
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-24">
@@ -615,7 +614,7 @@ export default function HomePage() {
               <p className="text-gray-700 text-lg leading-relaxed">
                 Spiritual Unity Match is a conscious dating platform designed for spiritual souls seeking meaningful connections. We prioritize depth, intention, and spiritual alignment over superficial connections.
               </p>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
                 <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
                   <div className="text-2xl mb-2">🧘</div>
@@ -721,8 +720,8 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.8 }}
-                whileHover={{ 
-                  y: -8, 
+                whileHover={{
+                  y: -8,
                   scale: 1.02,
                   transition: { duration: 0.2 }
                 }}
@@ -734,26 +733,26 @@ export default function HomePage() {
                   initial={{ opacity: 0 }}
                   whileHover={{ opacity: 1 }}
                 />
-                
+
                 {/* Content */}
                 <div className="relative z-10">
-                  <motion.div 
+                  <motion.div
                     className="text-4xl mb-4"
-                    whileHover={{ 
-                      scale: 1.1, 
+                    whileHover={{
+                      scale: 1.1,
                       rotate: [0, -5, 5, 0],
                       transition: { duration: 0.3 }
                     }}
                   >
                     {feature.icon}
                   </motion.div>
-                  <motion.h3 
+                  <motion.h3
                     className="text-xl font-bold text-gray-900 mb-3 group-hover:text-purple-800 transition-colors duration-300"
                     whileHover={{ scale: 1.05 }}
                   >
                     {feature.title}
                   </motion.h3>
-                  <motion.p 
+                  <motion.p
                     className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300"
                     whileHover={{ y: -2 }}
                   >
@@ -764,7 +763,7 @@ export default function HomePage() {
                 {/* Subtle border animation */}
                 <motion.div
                   className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-purple-200 transition-colors duration-300"
-                  whileHover={{ 
+                  whileHover={{
                     borderColor: "rgba(168, 85, 247, 0.3)",
                     transition: { duration: 0.3 }
                   }}
@@ -868,25 +867,25 @@ export default function HomePage() {
             {[
               {
                 name: 'Basic',
-                price: '$9.99/month',
-                description: 'Perfect for getting started',
-                features: ['Create profile', 'Limited browsing', 'Basic features'],
+                price: '$0/month',
+                description: 'Start your spiritual journey',
+                features: ['Create profile', 'View own profile', '10 profile views/day'],
                 icon: '🌱'
               },
               {
                 name: 'Standard',
-                price: '$19.99/month',
-                description: 'Most popular choice',
-                features: ['Unlimited browsing', 'See who liked you', 'Full messaging'],
+                price: '$19/month',
+                description: 'Our most popular choice',
+                features: ['Unlimited browsing', 'Full messaging', 'See who liked you'],
                 popular: true,
                 icon: '✨'
               },
               {
                 name: 'Premium',
-                price: '$39.99/month',
-                description: 'Complete spiritual experience',
-                features: ['Priority placement', 'Advanced filters', 'Unlimited everything'],
-                icon: '💎'
+                price: '$39/month',
+                description: 'Divine connection experience',
+                features: ['Priority placement', 'Advanced filters', 'Soul compatibility'],
+                icon: '👑'
               }
             ].map((plan, index) => (
               <motion.div
@@ -895,9 +894,8 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.8 }}
-                className={`bg-white rounded-3xl p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 relative ${
-                  plan.popular ? 'ring-2 ring-purple-500 scale-105' : ''
-                }`}
+                className={`bg-white rounded-3xl p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 relative ${plan.popular ? 'ring-2 ring-purple-500 scale-105' : ''
+                  }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -927,11 +925,10 @@ export default function HomePage() {
 
                 <Link
                   href="/plans"
-                  className={`w-full py-3 px-6 rounded-full font-semibold text-center transition-all duration-200 block ${
-                    plan.popular
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-xl hover:scale-105'
-                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                  }`}
+                  className={`w-full py-3 px-6 rounded-full font-semibold text-center transition-all duration-200 block ${plan.popular
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-xl hover:scale-105'
+                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                    }`}
                 >
                   Choose Plan
                 </Link>
@@ -1114,11 +1111,11 @@ export default function HomePage() {
       {showHeartSyncModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowHeartSyncModal(false)}
           />
-          
+
           {/* Modal Content */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -1127,7 +1124,7 @@ export default function HomePage() {
             className="relative max-w-md w-full max-h-[90vh] overflow-y-auto"
           >
             <HeartSyncGame />
-            
+
             {/* Close button */}
             <button
               onClick={() => setShowHeartSyncModal(false)}

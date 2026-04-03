@@ -24,7 +24,7 @@ const httpServer = createServer(app);
 // Initialize Socket.IO
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'https://spiritualunitymatch-frontend.onrender.com',
+    origin: process.env.FRONTEND_URL,
     credentials: true,
     methods: ['GET', 'POST']
   }
@@ -36,8 +36,7 @@ app.set('io', io);
 // Middleware
 // CORS configuration - allow multiple origins for production
 const allowedOrigins = [
-  process.env.FRONTEND_URL || 'https://spiritualunitymatch-frontend.onrender.com',
-  'https://spiritualunitymatch-frontend.onrender.com',
+  process.env.FRONTEND_URL,
   'http://localhost:3000'
 ].filter(Boolean); // Remove any undefined values
 
@@ -45,7 +44,7 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, Postman, or curl)
     if (!origin) return callback(null, true);
-    
+
     // Check if origin is in allowed list
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
@@ -77,13 +76,13 @@ app.use(cookieParser());
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://arghyanextbusinesssolution_db_user:HIoHvpDclQ9ei0NO@cluster0.ulsxizj.mongodb.net/?appName=Cluster0';
 
 mongoose.connect(MONGODB_URI)
-.then(() => {
-  console.log('✅ MongoDB connected successfully');
-})
-.catch((error) => {
-  console.error('❌ MongoDB connection error:', error);
-  process.exit(1);
-});
+  .then(() => {
+    console.log('✅ MongoDB connected successfully');
+  })
+  .catch((error) => {
+    console.error('❌ MongoDB connection error:', error);
+    process.exit(1);
+  });
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -110,7 +109,7 @@ app.use('/api/events', eventsRoutes);
 
 // Root route
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     success: true,
     message: 'Spiritual Unity Match API',
     version: '1.0.0',
